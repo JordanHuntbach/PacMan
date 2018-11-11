@@ -1,4 +1,1 @@
-I don't think the ghost release timers are implemented correctly during the sped-up play.
-The ghosts also continue to move slowly in the simulations until they reach a junction. Need to increase their speed at
-the start of each simulation.
-Make the ghost hit-boxes smaller so they can't catch up to pac-man on corners.
+Make the ghost hit-boxes smaller so they can't catch up to pac-man on corners. - may be fixed..

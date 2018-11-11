@@ -293,6 +293,7 @@ public class Game extends Application {
                             movesCounter = 0;
                             for (Ghost ghost : ghosts) {
                                 ghost.setSpeedUp(true);
+                                adjustPosition(ghost);
                             }
                         }
                         String next = mcts.nextDirection();
@@ -319,7 +320,11 @@ public class Game extends Application {
 
                 eatPills();
 
-                eatenCoolDown.value += 1;
+                if (simulation) {
+                    eatenCoolDown.value += 5;
+                } else {
+                    eatenCoolDown.value += 1;
+                }
 
                 if (eatenCoolDown.value == 240) {
                     eatenCoolDown.value = 0;
@@ -338,7 +343,11 @@ public class Game extends Application {
                 }
 
                 if (scaredCounter.value >= 0) {
-                    scaredCounter.value += 1;
+                    if (simulation) {
+                        scaredCounter.value += 5;
+                    } else {
+                        scaredCounter.value += 1;
+                    }
                     if (scaredCounter.value > 500) {
                         scaredGhosts(false);
                         updateGhosts(null);
@@ -355,9 +364,9 @@ public class Game extends Application {
                     updateGhosts(null);
                 }
 
-                if (!simulation) {
+//                if (!simulation) {
                     updateScreen();
-                }
+//                }
 
                 for (Ghost ghost : ghosts) {
                     if (ghost.canCatch(pacman)) {

@@ -19,7 +19,7 @@ public class Sprite
         velocityY = 0;
     }
 
-    public void setImage(Image i) {
+    void setImage(Image i) {
         image = i;
         width = i.getWidth();
         height = i.getHeight();
@@ -71,7 +71,7 @@ public class Sprite
     }
 
     public Rectangle2D eatBoundary() {
-        return new Rectangle2D(positionX + 5, positionY + 5, width - 10, height - 10);
+        return new Rectangle2D(positionX + 10, positionY + 10, width - 20, height - 20);
     }
 
     public boolean canEat(Sprite s) {

@@ -258,5 +258,6 @@ public class Ghost extends Sprite {
 
     public void setSpeedUp(boolean speedUp) {
         this.speedUp = speedUp;
+        this.setVelocity(this.velocityX, this.velocityY);
     }
 }
