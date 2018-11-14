@@ -122,6 +122,7 @@ public class Game extends Application {
 
     private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
     private boolean training = true; // TRUE HAS THE NEURAL NETWORK TRAIN
+    private int populationSize = 50;
     private boolean debug = false;
 
     public static void main(String[] args) {
@@ -133,41 +134,6 @@ public class Game extends Application {
         mainStage = stage;
         mainStage.setTitle("Pac-Man");
 
-        Group root = new Group();
-        Scene scene = new Scene(root, 592, 720);
-        mainStage.setScene(scene);
-        mainStage.show();
-
-        canvas = new Canvas(592,720);
-        root.getChildren().add(canvas);
-
-        gc = canvas.getGraphicsContext2D();
-        gc.setFont(Font.font("Helvetica", FontWeight.BOLD,24));
-        gc.setFill(Color.GREEN);
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(1);
-
-        if (!ai) {
-            scene.setOnKeyPressed(
-                    e -> {
-                        String direction = e.getCode().toString();
-                        switch (direction) {
-                            case "UP":
-                                nextDirection.set("UP");
-                                break;
-                            case "DOWN":
-                                nextDirection.set("DOWN");
-                                break;
-                            case "LEFT":
-                                nextDirection.set("LEFT");
-                                break;
-                            case "RIGHT":
-                                nextDirection.set("RIGHT");
-                                break;
-                        }
-                    });
-        }
-
         if (training) {
             setUpNN();
         } else {
@@ -175,29 +141,17 @@ public class Game extends Application {
         }
     }
 
-    /** Inputs are:
-     *  Distance / direction to each ghost
-     *  Is ghost edible
-     *  Is ghost moving towards Pac-Man
-     *  Direction / distance to closest pill
-     *  Direction / distance to closest powerPill
-     *
-     *  Outputs are:
-     *  Left, Right, Up, Down. Move in the direction with the greatest value.
-     * */
-
     private void setUpNN() {
         nodeInnovation = new Counter();
         connectionInnovation = new Counter();
         Genome genome = randomGenome();
 
-        evaluator = new Evaluator(10, genome, nodeInnovation, connectionInnovation) {
+        evaluator = new Evaluator(populationSize, genome, nodeInnovation, connectionInnovation) {
             @Override
             float evaluateGenome(Genome genome, int generation, int member, float highestScore) {
                 return playGame(genome, generation, member, highestScore);
             }
         };
-
 
         Task<Void> task = new Task<Void>() {
             @Override
@@ -218,6 +172,17 @@ public class Game extends Application {
     }
 
     private Genome randomGenome() {
+        /* Inputs are:
+           Distance / direction to each ghost
+           Is ghost edible
+           Is ghost moving towards Pac-Man
+           Direction / distance to closest pill
+           Direction / distance to closest powerPill
+
+           Outputs are:
+           Left, Right, Up, Down. Move in the direction with the greatest value.
+          */
+
         Genome genome = new Genome();
 
         NodeGene blinkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
@@ -305,10 +270,12 @@ public class Game extends Application {
 
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
-        while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
-            float [] inputs = getInputs();
+        float [] inputs = new float[24];
+        float [] nnOutputs;
 
-            float [] nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
+        while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
+            getInputs(inputs);
+            nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
 
             float maximum = Float.MIN_VALUE;
             int direction = -1;
@@ -362,10 +329,50 @@ public class Game extends Application {
                 }
             }
         }
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return score.value;
     }
 
     private void sharedSetup() {
+        Group root = new Group();
+        Scene scene = new Scene(root, 592, 720);
+        mainStage.setScene(scene);
+        mainStage.show();
+
+        canvas = new Canvas(592,720);
+        root.getChildren().add(canvas);
+
+        gc = canvas.getGraphicsContext2D();
+        gc.setFont(Font.font("Helvetica", FontWeight.BOLD,24));
+        gc.setFill(Color.GREEN);
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(1);
+
+        if (!ai) {
+            scene.setOnKeyPressed(
+                    e -> {
+                        String direction = e.getCode().toString();
+                        switch (direction) {
+                            case "UP":
+                                nextDirection.set("UP");
+                                break;
+                            case "DOWN":
+                                nextDirection.set("DOWN");
+                                break;
+                            case "LEFT":
+                                nextDirection.set("LEFT");
+                                break;
+                            case "RIGHT":
+                                nextDirection.set("RIGHT");
+                                break;
+                        }
+                    });
+        }
+
         pacman = new Sprite();
         currentDirection = new AtomicReference<>();
         nextDirection = new AtomicReference<>();
@@ -473,9 +480,7 @@ public class Game extends Application {
         ghostsEaten = 0;
     }
 
-    private float[] getInputs() {
-        float[] inputs = new float[24];
-
+    private void getInputs(float[] inputs) {
         int access = 0;
         // Active, distance, direction vertical, direction horizontal, edible for blinky, piny, inky, clyde
         for (Ghost ghost : ghosts) {
@@ -488,14 +493,11 @@ public class Game extends Application {
             inputs[access++] = ghost.isSpooked() ? 1 : -1;
         }
 
-
         //TODO: Distance, direction to closest pill & powerPill
         inputs[access++] = 1;
         inputs[access++] = 1;
         inputs[access++] = 1;
         inputs[access] = 1;
-
-        return inputs;
     }
 
     private float distanceToGhost(Ghost ghost) {
@@ -795,18 +797,10 @@ public class Game extends Application {
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         pacman.render(gc);
 
-        for (Sprite pill : pillsList ) {
-            pill.render(gc);
-        }
-        for (Sprite powerPill : powerPillsList ) {
-            powerPill.render(gc);
-        }
-        for (Sprite wall : wallsList ) {
-            wall.render(gc);
-        }
-        for (Ghost ghost : ghosts) {
-            ghost.render(gc);
-        }
+        pillsList.forEach(pill -> pill.render(gc));
+        powerPillsList.forEach(powerPill -> powerPill.render(gc));
+        wallsList.forEach(wall -> wall.render(gc));
+        ghosts.forEach(ghost -> ghost.render(gc));
 
         String pointsText = "Score: " + (score.value);
         gc.setFill(Color.WHITE);
@@ -833,7 +827,7 @@ public class Game extends Application {
         gc.fillText(text, 200, 700 );
         gc.strokeText(text, 200, 700 );
 
-        text = "Member: " + member;
+        text = "Member: " + member + "/" + populationSize;
         gc.fillText(text, 200, 670 );
         gc.strokeText(text, 200, 670 );
 

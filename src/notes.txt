@@ -1,1 +1,3 @@
-Make the ghost hit-boxes smaller so they can't catch up to pac-man on corners. - may be fixed..
+Do the TODOs
+Look for memory leaks and unnecessary new object creations.
+When breeding, the game sometimes freezes still.

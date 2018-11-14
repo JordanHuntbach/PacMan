@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,20 +9,23 @@ public class NeuralNetwork {
 
     private Map<Integer, Neuron> neurons; // All neurons in genome, mapped by ID
 
-    private List<Integer> input; 	// IDs of input neurons
-    private List<Integer> output;	// IDs of output neurons
+    private List<Integer> input;  // IDs of input neurons
+    private List<Integer> output; // IDs of output neurons
 
     private List<Neuron> unprocessed;
 
-    public NeuralNetwork(Genome genome) {
+    NeuralNetwork(Genome genome) {
         input = new ArrayList<>();
         output = new ArrayList<>();
         neurons = new HashMap<>();
         unprocessed = new LinkedList<>();
 
-        for (Integer nodeID : genome.getNodes().keySet()) {
-            NodeGene node = genome.getNodes().get(nodeID);
+        Map<Integer, NodeGene> nodes = genome.getNodes();
+
+        for (Integer nodeID : nodes.keySet()) {
+            NodeGene node = nodes.get(nodeID);
             Neuron neuron = new Neuron();
+            neurons.put(nodeID, neuron);
 
             if (node.getType() == NodeGene.TYPE.INPUT) {
                 neuron.addInputConnection();
@@ -31,49 +33,44 @@ public class NeuralNetwork {
             } else if (node.getType() == NodeGene.TYPE.OUTPUT) {
                 output.add(nodeID);
             }
-            neurons.put(nodeID, neuron);
         }
 
-        for (Integer connID : genome.getConnections().keySet()) {
-            ConnectionGene conn = genome.getConnections().get(connID);
-            if (!conn.isExpressed()) {
-                continue;
+        Map<Integer, ConnectionGene> connections = genome.getConnections();
+
+        for (Integer connectionID : connections.keySet()) {
+            ConnectionGene connection = connections.get(connectionID);
+            if (connection.isExpressed()) {
+                // Get the neuron related to the connection's inNode, and give it an output (node) and weight.
+                Neuron inputter = neurons.get(connection.getInNode());
+                inputter.addOutputConnection(connection.getOutNode(), connection.getWeight());
+
+                // Get the neuron related to the outNode, and give it an input connection.
+                Neuron outputReceiver = neurons.get(connection.getOutNode());
+                outputReceiver.addInputConnection();
             }
-            Neuron inputter = neurons.get(conn.getInNode()); // the node that leads into the connection, is the inputter to the connection
-            //System.out.println("Adding output from nodeID="+conn.getInNode()+"\t to\t nodeID="+conn.getOutNode()+"\tweight="+conn.getWeight());
-            inputter.addOutputConnection(conn.getOutNode(), conn.getWeight());
-            Neuron outputReceiver = neurons.get(conn.getOutNode()); // the node that receives from the connection, is the output receiver of the connection
-            //System.out.println("Adding input to nodeID="+conn.getOutNode());
-            outputReceiver.addInputConnection();
         }
     }
 
     public float[] calculate(float[] input_parameter) {
-        //System.out.println("New round of calculation...");
         if (input_parameter.length != input.size()) {
-            throw new IllegalArgumentException("Number of inputs must match number of input neurons in genome");
+            throw new IllegalArgumentException("Number of inputs must match number of input neurons in genome.");
         }
 
-        for (Integer key : neurons.keySet()) {
-            Neuron neuron = neurons.get(key);
-            neuron.reset();
-        }
+        neurons.keySet().forEach(key -> neurons.get(key).reset());
 
         unprocessed.clear();
         unprocessed.addAll(neurons.values());
 
-        // ready the inputs
-        for (int i = 0; i < input_parameter.length; i++) { 								// loop through each input
+        for (int i = 0; i < input_parameter.length; i++) {
+            // Feed inputs to the input neurons.
             Neuron inputNeuron = neurons.get(input.get(i));
-            //System.out.println("Feeding input ("+input_parameter[i]+") into input neuron (id="+input.get(i)+")");
-            inputNeuron.feedInput(input_parameter[i]);									// input neurons only have one input, so we know they're ready for calculation
+            inputNeuron.feedInput(input_parameter[i]);
             inputNeuron.calculate();
-            //System.out.println("Calculating node="+input.get(i)+"   result="+inputNeuron.output);
 
-            for (int k = 0; k < inputNeuron.outputIDs.length; k++) { 			// loop through receivers of this input
-                Neuron receiver = neurons.get(inputNeuron.outputIDs[k]);
-                //System.out.println("Feeding input ("+inputNeuron.getOutput()*inputNeuron.outputWeights[k]+") into inputneuron (id="+inputNeuron.outputIDs[k]+")");
-                receiver.feedInput(inputNeuron.getOutput()*inputNeuron.outputWeights[k]);		// add the input directly to the next neuron, using the correct weight for the connection
+            for (int j = 0; j < inputNeuron.getOutputIDs().size(); j++) {
+                // Feed the result to the input neurons' connections, multiplying by respective weights.
+                Neuron receiver = neurons.get(inputNeuron.getOutputIDs().get(j));
+                receiver.feedInput(inputNeuron.getOutput() * inputNeuron.getOutputWeights().get(j));
             }
             unprocessed.remove(inputNeuron);
         }
@@ -82,103 +79,73 @@ public class NeuralNetwork {
         while (unprocessed.size() > 0) {
             loops++;
             if (loops > 1000) {
-                //System.out.println("Can't solve network... Giving up to return null");
+                //System.out.println("Can't solve network. Giving up and returning null");
                 return null;
             }
 
             Iterator<Neuron> it = unprocessed.iterator();
             while (it.hasNext()) {
-                Neuron n = it.next();
-                if (n.isReady()) {						// if neuron has all inputs, calculate the neuron
-                    n.calculate();
-                    //System.out.println("Output value = "+n.getOutput());
-                    for (int i = 0; i < n.outputIDs.length; i++) {
-                        int receiverID = n.outputIDs[i];
-                        float receiverValue = n.output * n.outputWeights[i];
-                        //System.out.println("Feeding input ("+receiverValue+") into inputneuron (id="+receiverID+")");
+                Neuron neuron = it.next();
+                if (neuron.isReady()) {     // If neuron has all its inputs, calculate the neuron's output...
+                    neuron.calculate();
+                    for (int i = 0; i < neuron.getOutputIDs().size(); i++) { // ... and feed results to next neurons.
+                        int receiverID = neuron.getOutputIDs().get(i);
+                        float receiverValue = neuron.output * neuron.getOutputWeights().get(i);
                         neurons.get(receiverID).feedInput(receiverValue);
                     }
                     it.remove();
                 }
             }
         }
-        //System.out.println("Solved the network after "+loops+" loops");
 
-        // copy output from output neurons, and copy it into array
+        // Copy output from output neurons into array, and return it.
         float[] outputs = new float[output.size()];
         for (int i = 0; i < output.size(); i++) {
             outputs[i] = neurons.get(output.get(i)).getOutput();
         }
-
         return outputs;
     }
 
     public static class Neuron {
 
         private float output;
-        private Float[] inputs;
+        private ArrayList<Float> inputs;
 
-        private int[] outputIDs;
-        private float[] outputWeights;
+        private ArrayList<Integer> outputIDs;
+        private ArrayList<Float> outputWeights;
 
-        public Neuron() {
-            inputs = new Float[0];
-            outputIDs = new int[0];
-            outputWeights = new float[0];
+        Neuron() {
+            inputs = new ArrayList<>();
+            outputIDs = new ArrayList<>();
+            outputWeights = new ArrayList<>();
         }
 
-        /**
-         * Adds a connection from this neuron to another neuron
-         * @param outputID 	ID of the target neuron
-         * @param weight	Weight on this connection
-         */
-        public void addOutputConnection(int outputID, float weight) {
-            int[] nOutputIDs = new int[outputIDs.length+1]; // make a new array, slightly larger, to make room
-            for (int i = 0; i < outputIDs.length; i++) {	// copy over old array
-                nOutputIDs[i] = outputIDs[i];
-            }
-            nOutputIDs[outputIDs.length] = outputID;		// add new value at the end
-            outputIDs = nOutputIDs;
-
-            float[] nOutputWeights = new float[outputWeights.length+1];	// make a new array, slightly larger, to make room
-            for (int i = 0; i < outputWeights.length; i++) {
-                nOutputWeights[i] = outputWeights[i];
-            }
-            nOutputWeights[outputWeights.length] = weight;
-            outputWeights = nOutputWeights;
+        void addOutputConnection(int outputID, float weight) {
+            outputIDs.add(outputID);
+            outputWeights.add(weight);
         }
 
-        /**
-         * Adds a connection to this neuron from another neuron
-         */
-        public void addInputConnection() {
-            //System.out.println("Adding input connection, current length is "+inputs.length);
-            Float[] nInputs = new Float[inputs.length+1];
-            for (int i = 0; i < nInputs.length;i++) {
-                nInputs[i] = null;
-            }
-            this.inputs = nInputs;
-            //System.out.println("Finished adding input connection, current length is "+inputs.length);
+        void addInputConnection() {
+            inputs.add(null);
         }
 
-        /**
-         * Takes all the inputs, and calculates them into an output
-         * This can only happen if the neuron {@link #isReady() isReady}
-         */
-        public float calculate() {
+        List<Integer> getOutputIDs() {
+            return outputIDs;
+        }
+
+        List<Float> getOutputWeights() {
+            return outputWeights;
+        }
+
+        void calculate() {
             float sum = 0f;
-            for (Float f : inputs) {
+            for (float f : inputs) {
                 sum += f;
             }
             output = sigmoidActivationFunction(sum);
-            return output;
         }
 
-        /**
-         * If a neuron is ready, it has all the needed inputs to do calculation
-         * @return true if ready
-         */
-        public boolean isReady() {
+        boolean isReady() {
             boolean foundNull = false;
             for (Float f : inputs) {
                 if (f == null) {
@@ -189,44 +156,35 @@ public class NeuralNetwork {
             return !foundNull;
         }
 
-        /**
-         * Adds an input to the neuron in the first slot available
-         */
-        public void feedInput(float input) {
-            //System.out.println("Feeding input\tInput slots total: "+inputs.length);
+        // Adds an input to the neuron in the first slot available.
+        void feedInput(float input) {
             boolean foundSlot = false;
-            for (int i = 0; i < inputs.length; i++) {
-                if (inputs[i] == null) {
-                    inputs[i] = input;
+            for (int i = 0; i < inputs.size(); i++) {
+                if (inputs.get(i) == null) {
+                    inputs.set(i, input);
                     foundSlot = true;
                     break;
                 }
             }
             if (!foundSlot) {
-                throw new RuntimeException("No input slot ready for input. Input array: "+Arrays.toString(inputs));
+                throw new RuntimeException("No input slot ready for input.");
             }
         }
 
-        /**
-         * @return	Output of this neuron
-         */
-        public float getOutput() {
+        float getOutput() {
             return output;
         }
 
-        /**
-         * Resets the inputs on this neuron, as well as the calculation
-         */
-        public void reset() {
-            for (int i = 0; i < inputs.length; i++) {
-                inputs[i] = null;
+        void reset() {
+            for (int i = 0; i < inputs.size(); i++) {
+                inputs.set(i, null);
             }
             output = 0f;
         }
 
-        /* Takes any float, and returns a value between 0 and 1. 0f returns 0.5f */
+        // Takes any float, and returns a value between 0 and 1. An input of 0 returns 0.5
         private float sigmoidActivationFunction(float in) {
-            return (float)(1f/( 1f + Math.exp(-4.9d*in)));
+            return (float) (1f / (1f + Math.exp(-4.9d * in)));
         }
     }
 }

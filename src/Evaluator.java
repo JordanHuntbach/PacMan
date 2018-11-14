@@ -1,14 +1,5 @@
 import java.util.*;
 
-/**
- *  Evaluator evaluator = new Evaluator(100, genome, nodeInnovation, connectionInnovatione) {
- *      @Override
- *      protected float evaluateGenome(Genome genome) {
- *          return fitness
- *      }
- *  }
- * */
-
 public abstract class Evaluator {
     private int populationSize;
 
@@ -35,7 +26,7 @@ public abstract class Evaluator {
 
     private int generationNumber = 0;
 
-    public Evaluator(int populationSize, Genome startingGenome, Counter nodeInnovation, Counter connectionInnovation) {
+    Evaluator(int populationSize, Genome startingGenome, Counter nodeInnovation, Counter connectionInnovation) {
         this.populationSize = populationSize;
         this.nodeInnovation = nodeInnovation;
         this.connectionInnovation = connectionInnovation;
@@ -52,9 +43,7 @@ public abstract class Evaluator {
 
     void evaluate() {
         generationNumber ++;
-        for (Species species : speciesList) {
-            species.reset();
-        }
+        speciesList.forEach(Species::reset);
         speciesMap.clear();
         nextGenerationGenomes.clear();
 
@@ -79,12 +68,13 @@ public abstract class Evaluator {
 
         System.out.println("Removing unused species.");
         speciesList.removeIf(species -> species.getMembers().isEmpty());
-        System.out.println("There are currently" + speciesList.size() + " species.");
+        System.out.println("There are currently " + speciesList.size() + " species.");
 
         int count = 0;
 
         System.out.println("Evaluating genomes and assigning fitness.");
         for (Genome genome : genomes) {
+            System.out.println("Genome " + count + "/" + populationSize);
             Species species = speciesMap.get(genome);
 
             float score = evaluateGenome(genome, generationNumber, count++, highestScore); // Play the game
@@ -146,10 +136,7 @@ public abstract class Evaluator {
     }
 
     private Species getFitnessBiasedSpecies() {
-        double completeWeight = 0;
-        for (Species species : speciesList) {
-            completeWeight += species.getTotalAdjustedFitness();
-        }
+        double completeWeight = speciesList.stream().mapToDouble(Species::getTotalAdjustedFitness).sum();
         double r = Math.random() * completeWeight;
         double countWeight = 0;
         for (Species species : speciesList) {
@@ -162,10 +149,7 @@ public abstract class Evaluator {
     }
 
     private Genome getFitnessBiasedGenome(Species species) {
-        double completeWeight = 0;
-        for (Genome genome : species.getMembers()) {
-            completeWeight += genome.getFitness();
-        }
+        double completeWeight = species.getMembers().stream().mapToDouble(Genome::getFitness).sum();
         double r = Math.random() * completeWeight;
         double countWeight = 0;
         for (Genome genome : species.getMembers()) {
@@ -182,37 +166,33 @@ public abstract class Evaluator {
         private List<Genome> members;
         private float totalAdjustedFitness = 0f;
 
-        public Species(Genome mascot) {
+        Species(Genome mascot) {
             this.mascot = mascot;
             this.members = new LinkedList<>();
             this.members.add(mascot);
         }
 
-        public Genome getMascot() {
+        Genome getMascot() {
             return mascot;
         }
 
-        public void setMascot(Genome mascot) {
-            this.mascot = mascot;
-        }
-
-        public void addMember(Genome member) {
+        void addMember(Genome member) {
             this.members.add(member);
         }
 
-        public List<Genome> getMembers() {
+        List<Genome> getMembers() {
             return members;
         }
 
-        public void addAdjustedFitness(float adjustedFitness) {
+        void addAdjustedFitness(float adjustedFitness) {
             this.totalAdjustedFitness += adjustedFitness;
         }
 
-        public float getTotalAdjustedFitness() {
+        float getTotalAdjustedFitness() {
             return totalAdjustedFitness;
         }
 
-        public void reset() {
+        private void reset() {
             this.mascot = members.get(random.nextInt(members.size()));
             members.clear();
             totalAdjustedFitness = 0f;
