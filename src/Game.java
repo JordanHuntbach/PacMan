@@ -18,7 +18,6 @@ import javafx.animation.AnimationTimer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicReference;
 import static java.lang.Thread.sleep;
 
 public class Game extends Application {
@@ -93,22 +92,22 @@ public class Game extends Application {
     private Sprite inkyMarker;
     private Sprite clydeMarker;
 
-    private IntValue score = new IntValue(0);
-    private IntValue lives = new IntValue(2);
-    private IntValue pinkyCounter = new IntValue(0);
-    private IntValue inkyCounter = new IntValue(0);
-    private IntValue clydeCounter = new IntValue(0);
-    private IntValue eatenCoolDown = new IntValue(0);
+    private int score = 0;
+    private int lives = 2;
+    private int pinkyCounter = 0;
+    private int inkyCounter = 0;
+    private int clydeCounter = 0;
+    private int eatenCoolDown = 0;
 
-    private IntValue scaredCounter = new IntValue(-1);
+    private int scaredCounter = -1;
 
-    private AtomicReference<String> currentDirection;
-    private AtomicReference<String> nextDirection;
+    private String currentDirection;
+    private String nextDirection;
 
     private Stage mainStage;
 
-    private IntValue mouthPause = new IntValue(0);
-    private AtomicReference<Boolean> mouthOpen = new AtomicReference<>();
+    private int mouthPause = 0;
+    private boolean mouthOpen = true;
 
     private boolean simulation = false;
     private State realState;
@@ -135,6 +134,7 @@ public class Game extends Application {
         mainStage.setTitle("Pac-Man");
 
         if (training) {
+            guiSetup();
             setUpNN();
         } else {
             newGame();
@@ -266,7 +266,7 @@ public class Game extends Application {
     }
 
     private float playGame(Genome genome, int genNumber, int memNumber, float highScore) {
-        sharedSetup();
+        gameSetup();
 
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
@@ -287,16 +287,16 @@ public class Game extends Application {
             }
             switch (direction) {
                 case 0:
-                    nextDirection.set("UP");
+                    nextDirection = "UP";
                     break;
                 case 1:
-                    nextDirection.set("DOWN");
+                    nextDirection = "DOWN";
                     break;
                 case 2:
-                    nextDirection.set("LEFT");
+                    nextDirection = "LEFT";
                     break;
                 case 3:
-                    nextDirection.set("RIGHT");
+                    nextDirection = "RIGHT";
                     break;
                 default:
                     throw new IllegalStateException("Neural Network not returned good values.");
@@ -306,7 +306,7 @@ public class Game extends Application {
 
             eatPills();
 
-            eatenCoolDown.value += 1;
+            eatenCoolDown += 1;
 
             updateGhostsWrapper();
 
@@ -324,20 +324,22 @@ public class Game extends Application {
                     if (ghost.isSpooked()) {
                         ghostEaten(ghost);
                     } else if (!ghost.isEyes()) {
-                        return score.value;
+                        return score;
                     }
                 }
             }
         }
+
         try {
             Thread.sleep(20);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return score.value;
+
+        return score;
     }
 
-    private void sharedSetup() {
+    private void guiSetup() {
         Group root = new Group();
         Scene scene = new Scene(root, 592, 720);
         mainStage.setScene(scene);
@@ -354,28 +356,14 @@ public class Game extends Application {
 
         if (!ai) {
             scene.setOnKeyPressed(
-                    e -> {
-                        String direction = e.getCode().toString();
-                        switch (direction) {
-                            case "UP":
-                                nextDirection.set("UP");
-                                break;
-                            case "DOWN":
-                                nextDirection.set("DOWN");
-                                break;
-                            case "LEFT":
-                                nextDirection.set("LEFT");
-                                break;
-                            case "RIGHT":
-                                nextDirection.set("RIGHT");
-                                break;
-                        }
-                    });
+                    e -> nextDirection = e.getCode().toString());
         }
+    }
 
+    private void gameSetup() {
         pacman = new Sprite();
-        currentDirection = new AtomicReference<>();
-        nextDirection = new AtomicReference<>();
+        currentDirection = "";
+        nextDirection = "";
 
         resetPacman();
 
@@ -472,11 +460,11 @@ public class Game extends Application {
         clydeMarker = new Sprite();
         clydeMarker.setImage("Sprites/Markers/clyde.png");
 
-        score = new IntValue(0);
-        lives = new IntValue(2);
-        pinkyCounter.value = 0;
-        inkyCounter.value = 0;
-        clydeCounter.value = 0;
+        score = 0;
+        lives = 2;
+        pinkyCounter = 0;
+        inkyCounter = 0;
+        clydeCounter = 0;
         ghostsEaten = 0;
     }
 
@@ -513,10 +501,11 @@ public class Game extends Application {
     }
 
     private void newGame() {
-        sharedSetup();
+        guiSetup();
+        gameSetup();
 
         if (ai) {
-            nextDirection.set("LEFT");
+            nextDirection = "LEFT";
         }
 
         new AnimationTimer() {
@@ -544,11 +533,11 @@ public class Game extends Application {
                         String next = mcts.nextDirection();
                         movesCounter++;
                         if (next != null) {
-                            nextDirection.set(next);
+                            nextDirection = next;
                         } else if (movesCounter < MCTS.MAX_MOVES) {
-                            nextDirection.set(PacManController.getNextDirection(pacman));
+                            nextDirection = PacManController.getNextDirection(pacman);
                         } else {
-                            mcts.backPropagation(score.value);
+                            mcts.backPropagation(score);
                             restoreFromState(realState);
                         }
                     } else {
@@ -557,7 +546,7 @@ public class Game extends Application {
                         for (Ghost ghost : ghosts) {
                             ghost.setSpeedUp(false);
                         }
-                        nextDirection.set(mcts.evaluateTree());
+                        nextDirection = mcts.evaluateTree();
                     }
                 }
 
@@ -566,9 +555,9 @@ public class Game extends Application {
                 eatPills();
 
                 if (simulation) {
-                    eatenCoolDown.value += 5;
+                    eatenCoolDown += 5;
                 } else {
-                    eatenCoolDown.value += 1;
+                    eatenCoolDown += 1;
                 }
 
                 if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
@@ -588,10 +577,10 @@ public class Game extends Application {
                             ghostEaten(ghost);
                         } else if (!ghost.isEyes()) {
                             if (simulation) {
-                                mcts.backPropagation(score.value);
+                                mcts.backPropagation(score);
                                 restoreFromState(realState);
                                 break;
-                            } else if (lives.value > 0) {
+                            } else if (lives > 0) {
                                 lostLife();
                                 break;
                             } else {
@@ -616,7 +605,7 @@ public class Game extends Application {
             SPEED = 2;
         }
 
-        switch (nextDirection.get()) {
+        switch (nextDirection) {
             case "UP":
                 pacman.setVelocity(0, -SPEED);
                 pacman.update();
@@ -629,9 +618,9 @@ public class Game extends Application {
                 }
                 if (canTurn) {
                     alreadyMoved = true;
-                    currentDirection.set("UP");
-                    nextDirection.set("");
-                    if (mouthOpen.get()) {
+                    currentDirection = nextDirection;
+                    nextDirection = "";
+                    if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanU.png");
                     }
                 }
@@ -648,9 +637,9 @@ public class Game extends Application {
                 }
                 if (canTurn) {
                     alreadyMoved = true;
-                    currentDirection.set("DOWN");
-                    nextDirection.set("");
-                    if (mouthOpen.get()) {
+                    currentDirection = nextDirection;
+                    nextDirection = "";
+                    if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanD.png");
                     }
                 }
@@ -667,9 +656,9 @@ public class Game extends Application {
                 }
                 if (canTurn) {
                     alreadyMoved = true;
-                    currentDirection.set("LEFT");
-                    nextDirection.set("");
-                    if (mouthOpen.get()) {
+                    currentDirection = nextDirection;
+                    nextDirection = "";
+                    if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanL.png");
                     }
                 }
@@ -686,19 +675,19 @@ public class Game extends Application {
                 }
                 if (canTurn) {
                     alreadyMoved = true;
-                    currentDirection.set("RIGHT");
-                    nextDirection.set("");
-                    if (mouthOpen.get()) {
+                    currentDirection = nextDirection;
+                    nextDirection = "";
+                    if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanR.png");
                     }
                 }
                 break;
         }
 
-        mouthPause.value += 1;
+        mouthPause += 1;
 
         if (!alreadyMoved){
-            switch (currentDirection.get()) {
+            switch (currentDirection) {
                 case "UP":
                     pacman.setVelocity(0, -SPEED);
                     break;
@@ -725,14 +714,14 @@ public class Game extends Application {
                 }
             }
 
-            if (moved && mouthPause.value > 5) {
-                mouthPause.value = 0;
-                if (mouthOpen.get()) {
-                    mouthOpen.set(false);
+            if (moved && mouthPause > 5) {
+                mouthPause = 0;
+                if (mouthOpen) {
+                    mouthOpen = false;
                     pacman.setImage("Sprites/Pac-Man/pacman.png");
                 } else {
-                    mouthOpen.set(true);
-                    pacman.setImage("Sprites/Pac-Man/pacman" + currentDirection.get().substring(0, 1) + ".png");
+                    mouthOpen = true;
+                    pacman.setImage("Sprites/Pac-Man/pacman" + currentDirection.substring(0, 1) + ".png");
                 }
             }
         }
@@ -754,15 +743,15 @@ public class Game extends Application {
             Sprite pill = pills.next();
             if (pacman.canEat(pill)) {
                 pills.remove();
-                score.value += 10;
+                score += 10;
                 if (!pinky.isActive()) {
-                    pinkyCounter.value += 1;
+                    pinkyCounter += 1;
                 } else if (!inky.isActive()) {
-                    inkyCounter.value += 1;
+                    inkyCounter += 1;
                 } if (!clyde.isActive()) {
-                    clydeCounter.value += 1;
+                    clydeCounter += 1;
                 }
-                eatenCoolDown.value = 0;
+                eatenCoolDown = 0;
             }
         }
         Iterator<Sprite> powerPills = powerPillsList.iterator();
@@ -770,24 +759,24 @@ public class Game extends Application {
             Sprite powerPill = powerPills.next();
             if (pacman.canEat(powerPill)) {
                 powerPills.remove();
-                score.value += 50;
+                score += 50;
                 scaredGhosts(true);
                 ghostsEaten = 0;
                 if (!pinky.isActive()) {
-                    pinkyCounter.value += 1;
+                    pinkyCounter += 1;
                 } else if (!inky.isActive()) {
-                    inkyCounter.value += 1;
+                    inkyCounter += 1;
                 } if (!clyde.isActive()) {
-                    clydeCounter.value += 1;
+                    clydeCounter += 1;
                 }
-                eatenCoolDown.value = 0;
+                eatenCoolDown = 0;
             }
         }
-        if (!pinky.isActive() && pinkyCounter.value == 3) {
+        if (!pinky.isActive() && pinkyCounter == 3) {
             pinky.setActive();
-        } else if (!inky.isActive() && inkyCounter.value == 30) {
+        } else if (!inky.isActive() && inkyCounter == 30) {
             inky.setActive();
-        } else if (clyde.isActive() && clydeCounter.value == 60) {
+        } else if (clyde.isActive() && clydeCounter == 60) {
             clyde.setActive();
         }
     }
@@ -802,12 +791,12 @@ public class Game extends Application {
         wallsList.forEach(wall -> wall.render(gc));
         ghosts.forEach(ghost -> ghost.render(gc));
 
-        String pointsText = "Score: " + (score.value);
+        String pointsText = "Score: " + (score);
         gc.setFill(Color.WHITE);
         gc.fillText(pointsText, 20, 670 );
         gc.strokeText(pointsText, 20, 670 );
 
-        String livesText = "Lives: " + (lives.value);
+        String livesText = "Lives: " + (lives);
         gc.fillText(livesText, 20, 700 );
         gc.strokeText(livesText, 20, 700 );
 
@@ -855,9 +844,9 @@ public class Game extends Application {
 
     private void scaredGhosts(boolean scared) {
         if (scared){
-            scaredCounter.value = 0;
+            scaredCounter = 0;
         } else {
-            scaredCounter.value = -1;
+            scaredCounter = -1;
         }
 
         for (Ghost ghost : ghosts) {
@@ -869,8 +858,8 @@ public class Game extends Application {
     }
 
     private void updateGhostsWrapper() {
-        if (eatenCoolDown.value == 240) {
-            eatenCoolDown.value = 0;
+        if (eatenCoolDown == 240) {
+            eatenCoolDown = 0;
             if (!pinky.isActive()) {
                 pinky.setActive();
             } else if (!inky.isActive()) {
@@ -880,17 +869,17 @@ public class Game extends Application {
             }
         }
 
-        if (scaredCounter.value >= 0) {
+        if (scaredCounter >= 0) {
             if (simulation) {
-                scaredCounter.value += 5;
+                scaredCounter += 5;
             } else {
-                scaredCounter.value += 1;
+                scaredCounter += 1;
             }
-            if (scaredCounter.value > 500) {
+            if (scaredCounter > 500) {
                 scaredGhosts(false);
                 updateGhosts(null);
-            } else if (scaredCounter.value > 350) {
-                if ((scaredCounter.value / 10) % 2 == 0) {
+            } else if (scaredCounter > 350) {
+                if ((scaredCounter / 10) % 2 == 0) {
                     updateGhosts("Blue");
                 } else {
                     updateGhosts("White");
@@ -991,14 +980,14 @@ public class Game extends Application {
         pacman.setImage("Sprites/Pac-Man/pacman.png");
         pacman.setPosition(277, 467);
         pacman.setVelocity(0, 0);
-        currentDirection.set("R");
+        currentDirection = "R";
         if (ai) {
-            nextDirection.set("RIGHT");
+            nextDirection = "RIGHT";
         } else {
-            nextDirection.set("");
+            nextDirection = "";
         }
-        mouthOpen.set(true);
-        mouthPause.value = 0;
+        mouthOpen = true;
+        mouthPause = 0;
     }
 
     private void resetGhosts() {
@@ -1015,18 +1004,18 @@ public class Game extends Application {
         clyde.setImage("Sprites/Ghosts/Clyde/clydeUp.png");
         clyde.setScared(false);
         clyde.setInactive(317);
-        scaredCounter.value = -1;
+        scaredCounter = -1;
     }
 
     private void lostLife() {
-        lives.value -= 1;
+        lives -= 1;
         resetGhosts();
         resetPacman();
         updateScreen();
 
-        pinkyCounter.value = -4;
-        inkyCounter.value = 20;
-        clydeCounter.value = 52;
+        pinkyCounter = -4;
+        inkyCounter = 20;
+        clydeCounter = 52;
 
         try {
             sleep(1500);
@@ -1051,7 +1040,7 @@ public class Game extends Application {
         sceneTitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         grid.add(sceneTitle, 0, 0);
 
-        Text scoreText = new Text("Final Score: " + score.value);
+        Text scoreText = new Text("Final Score: " + score);
         scoreText.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         grid.add(scoreText, 0, 1);
 
@@ -1075,7 +1064,7 @@ public class Game extends Application {
 
         adjustPosition(ghost);
 
-        score.value += 200 * Math.pow(2, ghostsEaten);
+        score += 200 * Math.pow(2, ghostsEaten);
         ghostsEaten += 1;
     }
 
@@ -1087,17 +1076,17 @@ public class Game extends Application {
         this.pacman.setPosition(gameState.getPacmanPosition().getPositionX(), gameState.getPacmanPosition().getPositionY());
         this.pillsList = new ArrayList<>(gameState.getPillsList());
         this.powerPillsList = new ArrayList<>(gameState.getPowerPillsList());
-        this.score.value = gameState.getScore();
+        this.score = gameState.getScore();
         this.blinky = new Ghost(gameState.getBlinky());
         this.pinky = new Ghost(gameState.getPinky());
         this.inky = new Ghost(gameState.getInky());
         this.clyde = new Ghost(gameState.getClyde());
         this.ghostsEaten = gameState.getGhostsEaten();
-        this.pinkyCounter.value = gameState.getPinkyCounter();
-        this.inkyCounter.value = gameState.getInkyCounter();
-        this.clydeCounter.value = gameState.getClydeCounter();
-        this.eatenCoolDown.value = gameState.getEatenCoolDown();
-        this.scaredCounter.value = gameState.getScaredCounter();
+        this.pinkyCounter = gameState.getPinkyCounter();
+        this.inkyCounter = gameState.getInkyCounter();
+        this.clydeCounter = gameState.getClydeCounter();
+        this.eatenCoolDown = gameState.getEatenCoolDown();
+        this.scaredCounter = gameState.getScaredCounter();
         ghosts = new ArrayList<>();
         ghosts.add(blinky);
         ghosts.add(pinky);
@@ -1118,7 +1107,7 @@ public class Game extends Application {
     }
 
     public int getScore() {
-        return score.value;
+        return score;
     }
 
     public Ghost getBlinky() {
@@ -1142,24 +1131,23 @@ public class Game extends Application {
     }
 
     public int getPinkyCounter() {
-        return pinkyCounter.value;
+        return pinkyCounter;
     }
 
     public int getInkyCounter() {
-        return inkyCounter.value;
+        return inkyCounter;
     }
 
     public int getClydeCounter() {
-        return clydeCounter.value;
+        return clydeCounter;
     }
 
     public int getEatenCoolDown() {
-        return eatenCoolDown.value;
+        return eatenCoolDown;
     }
 
     public int getScaredCounter() {
-        return scaredCounter.value;
+        return scaredCounter;
     }
-
 
 }
