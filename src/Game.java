@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -14,10 +15,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.animation.AnimationTimer;
-
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
+import static java.lang.Thread.sleep;
 
 public class Game extends Application {
 
@@ -108,14 +110,19 @@ public class Game extends Application {
     private IntValue mouthPause = new IntValue(0);
     private AtomicReference<Boolean> mouthOpen = new AtomicReference<>();
 
-    private boolean ai = true; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
-    private boolean debug = false;
-
     private boolean simulation = false;
     private State realState;
     private MCTS mcts;
     private int roundsCounter;
     private int movesCounter;
+
+    private Counter nodeInnovation;
+    private Counter connectionInnovation;
+    private Evaluator evaluator;
+
+    private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
+    private boolean training = true; // TRUE HAS THE NEURAL NETWORK TRAIN
+    private boolean debug = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -125,10 +132,7 @@ public class Game extends Application {
     public void start(Stage stage) {
         mainStage = stage;
         mainStage.setTitle("Pac-Man");
-        newGame();
-    }
 
-    private void newGame() {
         Group root = new Group();
         Scene scene = new Scene(root, 592, 720);
         mainStage.setScene(scene);
@@ -143,32 +147,230 @@ public class Game extends Application {
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(1);
 
+        if (!ai) {
+            scene.setOnKeyPressed(
+                    e -> {
+                        String direction = e.getCode().toString();
+                        switch (direction) {
+                            case "UP":
+                                nextDirection.set("UP");
+                                break;
+                            case "DOWN":
+                                nextDirection.set("DOWN");
+                                break;
+                            case "LEFT":
+                                nextDirection.set("LEFT");
+                                break;
+                            case "RIGHT":
+                                nextDirection.set("RIGHT");
+                                break;
+                        }
+                    });
+        }
+
+        if (training) {
+            setUpNN();
+        } else {
+            newGame();
+        }
+    }
+
+    /** Inputs are:
+     *  Distance / direction to each ghost
+     *  Is ghost edible
+     *  Is ghost moving towards Pac-Man
+     *  Direction / distance to closest pill
+     *  Direction / distance to closest powerPill
+     *
+     *  Outputs are:
+     *  Left, Right, Up, Down. Move in the direction with the greatest value.
+     * */
+
+    private void setUpNN() {
+        nodeInnovation = new Counter();
+        connectionInnovation = new Counter();
+        Genome genome = randomGenome();
+
+        evaluator = new Evaluator(10, genome, nodeInnovation, connectionInnovation) {
+            @Override
+            float evaluateGenome(Genome genome, int generation, int member, float highestScore) {
+                return playGame(genome, generation, member, highestScore);
+            }
+        };
+
+
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() {
+                for (int i = 0; i < 10; i++) {
+                    evaluator.evaluate();
+                }
+
+                // TODO: Save the population (or just the best genome) to a file, so it can be re-used later.
+
+                return null;
+            }
+        };
+
+        // Run task in new thread
+        new Thread(task).start();
+
+    }
+
+    private Genome randomGenome() {
+        Genome genome = new Genome();
+
+        NodeGene blinkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene blinkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene blinkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene blinkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene blinkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(blinkyActive);
+        genome.addNodeGene(blinkyDistance);
+        genome.addNodeGene(blinkyUpOrDown);
+        genome.addNodeGene(blinkyLeftOrRight);
+        genome.addNodeGene(blinkyEdible);
+
+        NodeGene pinkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene pinkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene pinkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene pinkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene pinkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(pinkyActive);
+        genome.addNodeGene(pinkyDistance);
+        genome.addNodeGene(pinkyUpOrDown);
+        genome.addNodeGene(pinkyLeftOrRight);
+        genome.addNodeGene(pinkyEdible);
+
+        NodeGene inkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene inkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene inkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene inkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene inkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(inkyActive);
+        genome.addNodeGene(inkyDistance);
+        genome.addNodeGene(inkyUpOrDown);
+        genome.addNodeGene(inkyLeftOrRight);
+        genome.addNodeGene(inkyEdible);
+
+        NodeGene clydeActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene clydeDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene clydeUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene clydeLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene clydeEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(clydeActive);
+        genome.addNodeGene(clydeDistance);
+        genome.addNodeGene(clydeUpOrDown);
+        genome.addNodeGene(clydeLeftOrRight);
+        genome.addNodeGene(clydeEdible);
+
+        NodeGene distanceToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene directionToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(distanceToClosestPill);
+        genome.addNodeGene(directionToClosestPill);
+
+        NodeGene distanceToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene directionToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(distanceToClosestPowerPill);
+        genome.addNodeGene(directionToClosestPowerPill);
+
+        NodeGene up = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
+        NodeGene down = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
+        NodeGene left = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
+        NodeGene right = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(up);
+        genome.addNodeGene(down);
+        genome.addNodeGene(left);
+        genome.addNodeGene(right);
+
+        Random random = new Random();
+
+        for (NodeGene nodeGene : genome.getNodes().values()) {
+            if (nodeGene.getType() == NodeGene.TYPE.INPUT) {
+                ConnectionGene leftConnection = new ConnectionGene(nodeGene.getId(), left.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
+                genome.addConnectionGene(leftConnection);
+                ConnectionGene rightConnection = new ConnectionGene(nodeGene.getId(), right.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
+                genome.addConnectionGene(rightConnection);
+                ConnectionGene upConnection = new ConnectionGene(nodeGene.getId(), up.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
+                genome.addConnectionGene(upConnection);
+                ConnectionGene downConnection = new ConnectionGene(nodeGene.getId(), down.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
+                genome.addConnectionGene(downConnection);
+            }
+        }
+        return genome;
+    }
+
+    private float playGame(Genome genome, int genNumber, int memNumber, float highScore) {
+        sharedSetup();
+
+        NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
+
+        while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
+            float [] inputs = getInputs();
+
+            float [] nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
+
+            float maximum = Float.MIN_VALUE;
+            int direction = -1;
+            for (int i = 0; i < nnOutputs.length; i++) {
+                if (nnOutputs[i] > maximum) {
+                    maximum = nnOutputs[i];
+                    direction = i;
+                }
+            }
+            switch (direction) {
+                case 0:
+                    nextDirection.set("UP");
+                    break;
+                case 1:
+                    nextDirection.set("DOWN");
+                    break;
+                case 2:
+                    nextDirection.set("LEFT");
+                    break;
+                case 3:
+                    nextDirection.set("RIGHT");
+                    break;
+                default:
+                    throw new IllegalStateException("Neural Network not returned good values.");
+            }
+
+            updatePacman();
+
+            eatPills();
+
+            eatenCoolDown.value += 1;
+
+            updateGhostsWrapper();
+
+            Platform.runLater(this::updateScreen);
+            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
+
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            for (Ghost ghost : ghosts) {
+                if (ghost.canCatch(pacman)) {
+                    if (ghost.isSpooked()) {
+                        ghostEaten(ghost);
+                    } else if (!ghost.isEyes()) {
+                        return score.value;
+                    }
+                }
+            }
+        }
+        return score.value;
+    }
+
+    private void sharedSetup() {
         pacman = new Sprite();
         currentDirection = new AtomicReference<>();
         nextDirection = new AtomicReference<>();
 
         resetPacman();
-
-        if (!ai) {
-            scene.setOnKeyPressed(
-                e -> {
-                    String direction = e.getCode().toString();
-                    switch (direction) {
-                        case "UP":
-                            nextDirection.set("UP");
-                            break;
-                        case "DOWN":
-                            nextDirection.set("DOWN");
-                            break;
-                        case "LEFT":
-                            nextDirection.set("LEFT");
-                            break;
-                        case "RIGHT":
-                            nextDirection.set("RIGHT");
-                            break;
-                    }
-                });
-        }
 
         pillsList = new ArrayList<>();
         powerPillsList = new ArrayList<>();
@@ -269,6 +471,47 @@ public class Game extends Application {
         inkyCounter.value = 0;
         clydeCounter.value = 0;
         ghostsEaten = 0;
+    }
+
+    private float[] getInputs() {
+        float[] inputs = new float[24];
+
+        int access = 0;
+        // Active, distance, direction vertical, direction horizontal, edible for blinky, piny, inky, clyde
+        for (Ghost ghost : ghosts) {
+            inputs[access++] = ghost.isActive() ? 1 : -1;
+            float distance = distanceToGhost(ghost);
+            inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
+            double direction = Math.toRadians(directionToGhost(ghost));
+            inputs[access++] = (float) Math.cos(direction);
+            inputs[access++] = (float) Math.sin(direction);
+            inputs[access++] = ghost.isSpooked() ? 1 : -1;
+        }
+
+
+        //TODO: Distance, direction to closest pill & powerPill
+        inputs[access++] = 1;
+        inputs[access++] = 1;
+        inputs[access++] = 1;
+        inputs[access] = 1;
+
+        return inputs;
+    }
+
+    private float distanceToGhost(Ghost ghost) {
+        float dx = (float) Math.abs(pacman.getPositionX() - ghost.getPositionX());
+        float dy = (float) Math.abs(pacman.getPositionY() - ghost.getPositionY());
+        return (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    }
+
+    private double directionToGhost(Ghost ghost) {
+        double x = (ghost.getPositionX() - pacman.getPositionX()); // +ve if ghost to the right
+        double y = (pacman.getPositionY() - ghost.getPositionY()); // +ve if ghost above
+        return Math.toDegrees(Math.atan(y / x)) - 90;
+    }
+
+    private void newGame() {
+        sharedSetup();
 
         if (ai) {
             nextDirection.set("LEFT");
@@ -326,43 +569,12 @@ public class Game extends Application {
                     eatenCoolDown.value += 1;
                 }
 
-                if (eatenCoolDown.value == 240) {
-                    eatenCoolDown.value = 0;
-                    if (!pinky.isActive()) {
-                        pinky.setActive();
-                    } else if (!inky.isActive()) {
-                        inky.setActive();
-                    } else if (!clyde.isActive()) {
-                        clyde.setActive();
-                    }
-                }
-
                 if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
                     gameOver(true);
                     this.stop();
                 }
 
-                if (scaredCounter.value >= 0) {
-                    if (simulation) {
-                        scaredCounter.value += 5;
-                    } else {
-                        scaredCounter.value += 1;
-                    }
-                    if (scaredCounter.value > 500) {
-                        scaredGhosts(false);
-                        updateGhosts(null);
-                    } else if (scaredCounter.value > 350) {
-                        if ((scaredCounter.value / 10) % 2 == 0) {
-                            updateGhosts("Blue");
-                        } else {
-                            updateGhosts("White");
-                        }
-                    } else {
-                        updateGhosts("Blue");
-                    }
-                } else {
-                    updateGhosts(null);
-                }
+                updateGhostsWrapper();
 
 //                if (!simulation) {
                     updateScreen();
@@ -615,6 +827,21 @@ public class Game extends Application {
         }
     }
 
+    private void trainingStats(int gen, int member, float highScore) {
+        String text = "High Score: " + highScore;
+        gc.setFill(Color.WHITE);
+        gc.fillText(text, 200, 700 );
+        gc.strokeText(text, 200, 700 );
+
+        text = "Member: " + member;
+        gc.fillText(text, 200, 670 );
+        gc.strokeText(text, 200, 670 );
+
+        text = "Generation: " + gen;
+        gc.fillText(text, 400, 670 );
+        gc.strokeText(text, 400, 670 );
+    }
+
     private void adjustPosition(Ghost ghost) {
         double ghostX = ghost.getPositionX();
         double ghostY = ghost.getPositionY();
@@ -644,6 +871,41 @@ public class Game extends Application {
             if (!ghost.isEyes()) {
                 ghost.setScared(scared);
             }
+        }
+    }
+
+    private void updateGhostsWrapper() {
+        if (eatenCoolDown.value == 240) {
+            eatenCoolDown.value = 0;
+            if (!pinky.isActive()) {
+                pinky.setActive();
+            } else if (!inky.isActive()) {
+                inky.setActive();
+            } else if (!clyde.isActive()) {
+                clyde.setActive();
+            }
+        }
+
+        if (scaredCounter.value >= 0) {
+            if (simulation) {
+                scaredCounter.value += 5;
+            } else {
+                scaredCounter.value += 1;
+            }
+            if (scaredCounter.value > 500) {
+                scaredGhosts(false);
+                updateGhosts(null);
+            } else if (scaredCounter.value > 350) {
+                if ((scaredCounter.value / 10) % 2 == 0) {
+                    updateGhosts("Blue");
+                } else {
+                    updateGhosts("White");
+                }
+            } else {
+                updateGhosts("Blue");
+            }
+        } else {
+            updateGhosts(null);
         }
     }
 
@@ -773,7 +1035,7 @@ public class Game extends Application {
         clydeCounter.value = 52;
 
         try {
-            Thread.sleep(1500);
+            sleep(1500);
         } catch(InterruptedException ex) {
             Thread.currentThread().interrupt();
         }

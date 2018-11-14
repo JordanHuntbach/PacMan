@@ -34,4 +34,10 @@ public class PacManController {
         }
 
     }
+
+    public static String getRandomDirection() {
+        ArrayList<String> directions = new ArrayList<>(Arrays.asList("UP", "DOWN", "LEFT", "RIGHT"));
+        Random random = new Random();
+        return directions.get(random.nextInt(directions.size()));
+    }
 }
