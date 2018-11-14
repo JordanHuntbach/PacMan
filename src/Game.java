@@ -17,6 +17,7 @@ import javafx.scene.text.FontWeight;
 import javafx.animation.AnimationTimer;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import static java.lang.Thread.sleep;
 
@@ -473,30 +474,46 @@ public class Game extends Application {
         // Active, distance, direction vertical, direction horizontal, edible for blinky, piny, inky, clyde
         for (Ghost ghost : ghosts) {
             inputs[access++] = ghost.isActive() ? 1 : -1;
-            float distance = distanceToGhost(ghost);
+            float distance = distanceToSprite(ghost);
             inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
-            double direction = Math.toRadians(directionToGhost(ghost));
+            double direction = Math.toRadians(directionToSprite(ghost));
             inputs[access++] = (float) Math.cos(direction);
             inputs[access++] = (float) Math.sin(direction);
             inputs[access++] = ghost.isSpooked() ? 1 : -1;
         }
 
-        //TODO: Distance, direction to closest pill & powerPill
-        inputs[access++] = 1;
-        inputs[access++] = 1;
-        inputs[access++] = 1;
-        inputs[access] = 1;
+        Sprite pill = closestPill(pillsList);
+        Sprite powerPill = closestPill(pillsList);
+        inputs[access++] = distanceToSprite(pill);
+        inputs[access++] = (float) directionToSprite(pill);
+        inputs[access++] = distanceToSprite(powerPill);
+        inputs[access] = (float) directionToSprite(powerPill);
     }
 
-    private float distanceToGhost(Ghost ghost) {
-        float dx = (float) Math.abs(pacman.getPositionX() - ghost.getPositionX());
-        float dy = (float) Math.abs(pacman.getPositionY() - ghost.getPositionY());
+    private Sprite closestPill(List<Sprite> pills) {
+        float minDistance = Float.MAX_VALUE;
+        Sprite closest = null;
+        for (Sprite pill : pills) {
+            float dx = (float) Math.abs(pacman.getPositionX() - pill.getPositionX());
+            float dy = (float) Math.abs(pacman.getPositionY() - pill.getPositionY());
+            float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+            if (distance < minDistance) {
+                minDistance = distance;
+                closest = pill;
+            }
+        }
+        return closest;
+    }
+
+    private float distanceToSprite(Sprite sprite) {
+        float dx = (float) Math.abs(pacman.getPositionX() - sprite.getPositionX());
+        float dy = (float) Math.abs(pacman.getPositionY() - sprite.getPositionY());
         return (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     }
 
-    private double directionToGhost(Ghost ghost) {
-        double x = (ghost.getPositionX() - pacman.getPositionX()); // +ve if ghost to the right
-        double y = (pacman.getPositionY() - ghost.getPositionY()); // +ve if ghost above
+    private double directionToSprite(Sprite sprite) {
+        double x = (sprite.getPositionX() - pacman.getPositionX()); // +ve if sprite to the right
+        double y = (pacman.getPositionY() - sprite.getPositionY()); // +ve if sprite above
         return Math.toDegrees(Math.atan(y / x)) - 90;
     }
 

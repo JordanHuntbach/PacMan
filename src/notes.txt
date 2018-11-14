@@ -1,3 +1,2 @@
-Do the TODOs
 Look for memory leaks and unnecessary new object creations.
 When breeding, the game sometimes freezes still.
