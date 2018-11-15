@@ -1,2 +1,7 @@
+Fix the random ghost behaviour.
+There are currently 50 species, need to increase the population or the difference threshold.
+Add inputs for the valid directions.
+
+
 Look for memory leaks and unnecessary new object creations.
 When breeding, the game sometimes freezes still.

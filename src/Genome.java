@@ -52,23 +52,28 @@ public class Genome {
         int tries = 0;
         boolean success = false;
         while (!success && tries < maxAttempts) {
-            NodeGene node1 = nodes.get(random.nextInt(nodes.size()));
-            NodeGene node2 = nodes.get(random.nextInt(nodes.size()));
+            List<NodeGene> nodesList = new ArrayList<>(nodes.values());
+
+            NodeGene node1 = nodesList.get(random.nextInt(nodesList.size()));
+            NodeGene node2 = nodesList.get(random.nextInt(nodesList.size()));
 
             boolean reversed = false;
+            boolean connectionImpossible = false;
             if (node1.getType() == NodeGene.TYPE.HIDDEN && node2.getType() == NodeGene.TYPE.INPUT) {
                 reversed = true;
             } else if (node1.getType() == NodeGene.TYPE.OUTPUT && node2.getType() == NodeGene.TYPE.HIDDEN) {
                 reversed = true;
             } else if (node1.getType() == NodeGene.TYPE.OUTPUT && node2.getType() == NodeGene.TYPE.INPUT) {
                 reversed = true;
-            }
-
-            boolean connectionImpossible = false;
-            if (node1.getType() == NodeGene.TYPE.INPUT && node2.getType() == NodeGene.TYPE.INPUT) {
+            } else if (node1.getType() == NodeGene.TYPE.INPUT && node2.getType() == NodeGene.TYPE.INPUT) {
                 connectionImpossible = true;
             } else if (node1.getType() == NodeGene.TYPE.OUTPUT && node2.getType() == NodeGene.TYPE.OUTPUT) {
                 connectionImpossible = true;
+            }
+
+            if(connectionImpossible) {
+                tries ++;
+                continue;
             }
 
             boolean connectionExists = false;
@@ -82,17 +87,14 @@ public class Genome {
                 }
             }
 
-            if (!connectionExists && !connectionImpossible) {
+            if(connectionExists) {
+                tries ++;
+            } else {
                 float weight = random.nextFloat() * 2 - 1;
                 ConnectionGene newConnection = new ConnectionGene(reversed ? node1.getId() : node2.getId(), reversed ? node2.getId() : node1.getId(), weight, true, innovation.getInnovation());
                 connections.put(newConnection.getInnovation(), newConnection);
                 success = true;
-            } else {
-                tries ++;
             }
-        }
-        if (!success) {
-            System.out.println("Couldn't add connection.");
         }
     }
 
@@ -107,7 +109,9 @@ public class Genome {
     }
 
     public void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
-        ConnectionGene connection = connections.get(random.nextInt(connections.size()));
+        List<ConnectionGene> connectionsList = new ArrayList<>(connections.values());
+        int index = random.nextInt(connectionsList.size());
+        ConnectionGene connection = connectionsList.get(index);
 
         NodeGene inNode = nodes.get(connection.getInNode());
         NodeGene outNode = nodes.get(connection.getOutNode());
@@ -147,7 +151,6 @@ public class Genome {
         int excessGenes = countExcessGenes(genome1, genome2);
         int disjointGenes = countDisjointGenes(genome1, genome2);
         float averageWeightDifference = averageWeightDifference(genome1, genome2);
-
 
         return c1 * excessGenes + c2 * disjointGenes + c3 * averageWeightDifference;
     }

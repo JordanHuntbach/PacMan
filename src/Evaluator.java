@@ -41,6 +41,14 @@ public abstract class Evaluator {
 
     abstract float evaluateGenome(Genome genome, int generationNumber, int memberNumber, float highestScore);
 
+    void initialMutate(){
+        System.out.println("Mutating genomes.");
+        for (Genome genome : genomes) {
+            genome.mutation();
+            genome.addNodeMutation(nodeInnovation, connectionInnovation);
+        }
+    }
+
     void evaluate() {
         generationNumber ++;
         speciesList.forEach(Species::reset);
@@ -72,9 +80,9 @@ public abstract class Evaluator {
 
         int count = 0;
 
-        System.out.println("Evaluating genomes and assigning fitness.");
+        System.out.println("Evaluating " + populationSize + " genomes and assigning fitness.");
         for (Genome genome : genomes) {
-            System.out.println("Genome " + count + "/" + populationSize);
+            System.out.print(count + ".. ");
             Species species = speciesMap.get(genome);
 
             float score = evaluateGenome(genome, generationNumber, count++, highestScore); // Play the game
@@ -84,7 +92,7 @@ public abstract class Evaluator {
             genome.setFitness(adjustedScore);
 
             if (score > highestScore) {
-                System.out.println("New highest score found!");
+                System.out.println("New highest score found! (" + score + ")");
                 highestScore = score;
                 fittestGenome = genome;
             }
@@ -104,8 +112,10 @@ public abstract class Evaluator {
             nextGenerationGenomes.add(bestGenome);
         }
 
-        System.out.println("Breeding new members.");
+        System.out.println("Breeding " + (populationSize - nextGenerationGenomes.size()) +  " new members.");
+        count = 0;
         while (nextGenerationGenomes.size() < populationSize) {
+            System.out.print(count++ + ".. ");
             Species species = getFitnessBiasedSpecies();
 
             Genome parent1 = getFitnessBiasedGenome(species);

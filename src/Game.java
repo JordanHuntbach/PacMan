@@ -154,6 +154,10 @@ public class Game extends Application {
             }
         };
 
+        for (int i = 0; i < 10; i++) {
+            evaluator.initialMutate();
+        }
+
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() {
