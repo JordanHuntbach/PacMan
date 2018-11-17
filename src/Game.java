@@ -122,7 +122,7 @@ public class Game extends Application {
 
     private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
     private boolean training = true; // TRUE HAS THE NEURAL NETWORK TRAIN
-    private int populationSize = 50;
+    private int populationSize = 75;
     private boolean debug = false;
 
     public static void main(String[] args) {
@@ -309,11 +309,11 @@ public class Game extends Application {
 
             updatePacman();
 
-            eatPills();
-
             eatenCoolDown += 1;
 
             updateGhostsWrapper();
+
+            eatPills();
 
             Platform.runLater(this::updateScreen);
             Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
@@ -807,9 +807,16 @@ public class Game extends Application {
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         pacman.render(gc);
 
-        pillsList.forEach(pill -> pill.render(gc));
-        powerPillsList.forEach(powerPill -> powerPill.render(gc));
-        wallsList.forEach(wall -> wall.render(gc));
+        // Loop through copies to prevent concurrent access problems.
+        ArrayList<Sprite> copy = new ArrayList<>(pillsList);
+        copy.forEach(pill -> pill.render(gc));
+
+        copy = new ArrayList<>(powerPillsList);
+        copy.forEach(powerPill -> powerPill.render(gc));
+
+        copy = new ArrayList<>(wallsList);
+        copy.forEach(wall -> wall.render(gc));
+
         ghosts.forEach(ghost -> ghost.render(gc));
 
         String pointsText = "Score: " + (score);

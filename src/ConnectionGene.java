@@ -6,7 +6,7 @@ public class ConnectionGene {
     private boolean expressed;
     private int innovation;
 
-    public ConnectionGene(int inNode, int outNode, float weight, boolean expressed, int innovation) {
+    ConnectionGene(int inNode, int outNode, float weight, boolean expressed, int innovation) {
         this.inNode = inNode;
         this.outNode = outNode;
         this.weight = weight;
@@ -14,7 +14,7 @@ public class ConnectionGene {
         this.innovation = innovation;
     }
 
-    public ConnectionGene(ConnectionGene gene) {
+    ConnectionGene(ConnectionGene gene) {
         this.inNode = gene.inNode;
         this.outNode = gene.outNode;
         this.weight = gene.weight;

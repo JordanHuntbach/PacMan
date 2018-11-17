@@ -43,9 +43,13 @@ public abstract class Evaluator {
 
     void initialMutate(){
         System.out.println("Mutating genomes.");
+        int counter = 0;
         for (Genome genome : genomes) {
             genome.mutation();
-            genome.addNodeMutation(nodeInnovation, connectionInnovation);
+            if (counter < 10) {
+                counter++;
+                genome.addNodeMutation(nodeInnovation, connectionInnovation);
+            }
         }
     }
 
