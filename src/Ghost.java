@@ -212,9 +212,9 @@ public class Ghost extends Sprite {
             return "Up";
         } else if (toY > fromY) {
             return "Down";
-        } else if (fromX == 127 && fromY == 287 && toX == 427 && toY == 287) { // Check for the tunnel here.
+        } else if (fromX == 127 && fromY == 287 && toX == 427 && toY == 287) { // Checks for the tunnel.
             return "Left";
-        } else if (fromX == 427 && fromY == 287 && toX == 127 && toY == 287) { // Check for the tunnel here.
+        } else if (fromX == 427 && fromY == 287 && toX == 127 && toY == 287) { // Checks for the tunnel.
             return "Right";
         } else if (toX > fromX) {
             return "Right";

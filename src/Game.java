@@ -135,7 +135,7 @@ public class Game extends Application {
         mainStage.setTitle("Pac-Man");
 
         if (training) {
-            guiSetup();
+//            guiSetup();
             setUpNN();
         } else {
             newGame();
@@ -195,76 +195,76 @@ public class Game extends Application {
         NodeGene blinkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene blinkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene blinkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(blinkyActive);
-        genome.addNodeGene(blinkyDistance);
-        genome.addNodeGene(blinkyUpOrDown);
-        genome.addNodeGene(blinkyLeftOrRight);
-        genome.addNodeGene(blinkyEdible);
+        genome.addNodeGene(blinkyActive, nodeInnovation);
+        genome.addNodeGene(blinkyDistance, nodeInnovation);
+        genome.addNodeGene(blinkyUpOrDown, nodeInnovation);
+        genome.addNodeGene(blinkyLeftOrRight, nodeInnovation);
+        genome.addNodeGene(blinkyEdible, nodeInnovation);
 
         NodeGene pinkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene pinkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene pinkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene pinkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene pinkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(pinkyActive);
-        genome.addNodeGene(pinkyDistance);
-        genome.addNodeGene(pinkyUpOrDown);
-        genome.addNodeGene(pinkyLeftOrRight);
-        genome.addNodeGene(pinkyEdible);
+        genome.addNodeGene(pinkyActive, nodeInnovation);
+        genome.addNodeGene(pinkyDistance, nodeInnovation);
+        genome.addNodeGene(pinkyUpOrDown, nodeInnovation);
+        genome.addNodeGene(pinkyLeftOrRight, nodeInnovation);
+        genome.addNodeGene(pinkyEdible, nodeInnovation);
 
         NodeGene inkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene inkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene inkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene inkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene inkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(inkyActive);
-        genome.addNodeGene(inkyDistance);
-        genome.addNodeGene(inkyUpOrDown);
-        genome.addNodeGene(inkyLeftOrRight);
-        genome.addNodeGene(inkyEdible);
+        genome.addNodeGene(inkyActive, nodeInnovation);
+        genome.addNodeGene(inkyDistance, nodeInnovation);
+        genome.addNodeGene(inkyUpOrDown, nodeInnovation);
+        genome.addNodeGene(inkyLeftOrRight, nodeInnovation);
+        genome.addNodeGene(inkyEdible, nodeInnovation);
 
         NodeGene clydeActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene clydeDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene clydeUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene clydeLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene clydeEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(clydeActive);
-        genome.addNodeGene(clydeDistance);
-        genome.addNodeGene(clydeUpOrDown);
-        genome.addNodeGene(clydeLeftOrRight);
-        genome.addNodeGene(clydeEdible);
+        genome.addNodeGene(clydeActive, nodeInnovation);
+        genome.addNodeGene(clydeDistance, nodeInnovation);
+        genome.addNodeGene(clydeUpOrDown, nodeInnovation);
+        genome.addNodeGene(clydeLeftOrRight, nodeInnovation);
+        genome.addNodeGene(clydeEdible, nodeInnovation);
 
         NodeGene distanceToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene directionToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(distanceToClosestPill);
-        genome.addNodeGene(directionToClosestPill);
+        genome.addNodeGene(distanceToClosestPill, nodeInnovation);
+        genome.addNodeGene(directionToClosestPill, nodeInnovation);
 
         NodeGene distanceToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         NodeGene directionToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(distanceToClosestPowerPill);
-        genome.addNodeGene(directionToClosestPowerPill);
+        genome.addNodeGene(distanceToClosestPowerPill, nodeInnovation);
+        genome.addNodeGene(directionToClosestPowerPill, nodeInnovation);
 
         NodeGene up = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene down = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene left = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene right = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(up);
-        genome.addNodeGene(down);
-        genome.addNodeGene(left);
-        genome.addNodeGene(right);
+        genome.addNodeGene(up, nodeInnovation);
+        genome.addNodeGene(down, nodeInnovation);
+        genome.addNodeGene(left, nodeInnovation);
+        genome.addNodeGene(right, nodeInnovation);
 
         Random random = new Random();
 
         for (NodeGene nodeGene : genome.getNodes().values()) {
             if (nodeGene.getType() == NodeGene.TYPE.INPUT) {
                 ConnectionGene leftConnection = new ConnectionGene(nodeGene.getId(), left.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
-                genome.addConnectionGene(leftConnection);
+                genome.addConnectionGene(leftConnection, connectionInnovation);
                 ConnectionGene rightConnection = new ConnectionGene(nodeGene.getId(), right.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
-                genome.addConnectionGene(rightConnection);
+                genome.addConnectionGene(rightConnection, connectionInnovation);
                 ConnectionGene upConnection = new ConnectionGene(nodeGene.getId(), up.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
-                genome.addConnectionGene(upConnection);
+                genome.addConnectionGene(upConnection, connectionInnovation);
                 ConnectionGene downConnection = new ConnectionGene(nodeGene.getId(), down.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
-                genome.addConnectionGene(downConnection);
+                genome.addConnectionGene(downConnection, connectionInnovation);
             }
         }
         return genome;
@@ -304,7 +304,7 @@ public class Game extends Application {
                     nextDirection = "RIGHT";
                     break;
                 default:
-                    throw new IllegalStateException("Neural Network not returned good values.");
+                    System.out.println("Bad evaluation.");
             }
 
             updatePacman();
@@ -315,8 +315,8 @@ public class Game extends Application {
 
             eatPills();
 
-            Platform.runLater(this::updateScreen);
-            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
+//            Platform.runLater(this::updateScreen);
+//            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 
             try {
                 Thread.sleep(5);

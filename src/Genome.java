@@ -1,3 +1,4 @@
+import javax.xml.soap.Node;
 import java.util.*;
 
 public class Genome {
@@ -32,16 +33,18 @@ public class Genome {
         }
     }
 
-    public void addConnectionGene(ConnectionGene connectionGene) {
+    public void addConnectionGene(ConnectionGene connectionGene, Counter innovation) {
         connections.put(connectionGene.getInnovation(), connectionGene);
+        innovation.addConnectionGene(connectionGene);
     }
 
     public Map<Integer, ConnectionGene> getConnections() {
         return connections;
     }
 
-    public void addNodeGene(NodeGene nodeGene) {
+    public void addNodeGene(NodeGene nodeGene, Counter innovation) {
         nodes.put(nodeGene.getId(), nodeGene);
+        innovation.addNodeGene(nodeGene);
     }
 
     public Map<Integer, NodeGene> getNodes() {
@@ -90,9 +93,25 @@ public class Genome {
             if(connectionExists) {
                 tries ++;
             } else {
+                int innovationNumber = -1;
+
+                for (ConnectionGene connectionGene : innovation.getConnectionGenes().values()) {
+                    if (connectionGene.getInNode() == node1.getId() && connectionGene.getOutNode() == node2.getId()) {
+                        innovationNumber = connectionGene.getInnovation();
+                        break;
+                    } else if (connectionGene.getInNode() == node2.getId() && connectionGene.getOutNode() == node1.getId()) {
+                        innovationNumber = connectionGene.getInnovation();
+                        break;
+                    }
+                }
+
+                if (innovationNumber == -1) {
+                    innovationNumber = innovation.getInnovation();
+                }
+
                 float weight = random.nextFloat() * 2 - 1;
-                ConnectionGene newConnection = new ConnectionGene(reversed ? node1.getId() : node2.getId(), reversed ? node2.getId() : node1.getId(), weight, true, innovation.getInnovation());
-                connections.put(newConnection.getInnovation(), newConnection);
+                ConnectionGene newConnection = new ConnectionGene(reversed ? node1.getId() : node2.getId(), reversed ? node2.getId() : node1.getId(), weight, true, innovationNumber);
+                addConnectionGene(newConnection, innovation);
                 success = true;
             }
         }
@@ -108,6 +127,7 @@ public class Genome {
         }
     }
 
+    // TODO: Can check if the node exists by looking for connections that go from inNode -> X -> outNode, where no other connections go to/from X.
     public void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
         List<ConnectionGene> connectionsList = new ArrayList<>(connections.values());
         int index = random.nextInt(connectionsList.size());
@@ -122,25 +142,25 @@ public class Genome {
         ConnectionGene inToNew = new ConnectionGene(inNode.getId(), newNode.getId(), 1f, true, connectionInnovation.getInnovation());
         ConnectionGene newToOut = new ConnectionGene(newNode.getId(), outNode.getId(), connection.getWeight(), true, connectionInnovation.getInnovation());
 
-        nodes.put(newNode.getId(), newNode);
-        connections.put(inToNew.getInnovation(), inToNew);
-        connections.put(newToOut.getInnovation(), newToOut);
+        addNodeGene(newNode, nodeInnovation);
+        addConnectionGene(inToNew, connectionInnovation);
+        addConnectionGene(newToOut, connectionInnovation);
     }
 
     // Note that parent1 must be the fitter parent.
-    public static Genome crossover(Genome parent1, Genome parent2) {
+    public static Genome crossover(Genome parent1, Genome parent2, Counter nodeInnovation, Counter counterInnovation) {
         Genome child = new Genome();
 
         for (NodeGene parent1Node : parent1.getNodes().values()) {
-            child.addNodeGene(parent1Node);
+            child.addNodeGene(parent1Node, nodeInnovation);
         }
 
         for (ConnectionGene parent1connection : parent1.getConnections().values()) {
             if (parent2.getConnections().containsKey(parent1connection.getInnovation())) {
                 ConnectionGene childConnectionGene = random.nextBoolean() ? parent1connection.copy() : parent2.getConnections().get(parent1connection.getInnovation()).copy();
-                child.addConnectionGene(childConnectionGene);
+                child.addConnectionGene(childConnectionGene, counterInnovation);
             } else {
-                child.addConnectionGene(parent1connection.copy());
+                child.addConnectionGene(parent1connection.copy(), counterInnovation);
             }
         }
 

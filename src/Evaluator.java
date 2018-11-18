@@ -69,7 +69,6 @@ public abstract class Evaluator {
                     foundSpecies = true;
                     break;
                 }
-
             }
             if (!foundSpecies) {
                 Species newSpecies = new Species(genome);
@@ -127,16 +126,16 @@ public abstract class Evaluator {
 
             Genome child;
             if (parent1.getFitness() > parent2.getFitness()) {
-                child = Genome.crossover(parent1, parent2);
+                child = Genome.crossover(parent1, parent2, nodeInnovation, connectionInnovation);
             } else {
-                child = Genome.crossover(parent2, parent1);
+                child = Genome.crossover(parent2, parent1, nodeInnovation, connectionInnovation);
             }
 
             if (random.nextFloat() < MUTATION_RATE) {
                 child.mutation();
             }
             if (random.nextFloat() < ADD_CONNECTION_RATE) {
-                child.addConnectionMutation(connectionInnovation, 10);
+                child.addConnectionMutation(connectionInnovation, 50);
             }
             if (random.nextFloat() < ADD_NODE_RATE) {
                 child.addNodeMutation(nodeInnovation, connectionInnovation);

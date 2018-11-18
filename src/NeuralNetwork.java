@@ -52,15 +52,19 @@ public class NeuralNetwork {
     }
 
     public float[] calculate(float[] input_parameter) {
+        System.out.println("NN CALCULATE");
         if (input_parameter.length != input.size()) {
+            System.out.println("Input mismatch.");
             throw new IllegalArgumentException("Number of inputs must match number of input neurons in genome.");
         }
 
+        System.out.println("Clear neurons");
         neurons.keySet().forEach(key -> neurons.get(key).reset());
 
         unprocessed.clear();
         unprocessed.addAll(neurons.values());
 
+        System.out.println("Feed inputs");
         for (int i = 0; i < input_parameter.length; i++) {
             // Feed inputs to the input neurons.
             Neuron inputNeuron = neurons.get(input.get(i));
@@ -69,12 +73,15 @@ public class NeuralNetwork {
 
             for (int j = 0; j < inputNeuron.getOutputIDs().size(); j++) {
                 // Feed the result to the input neurons' connections, multiplying by respective weights.
-                Neuron receiver = neurons.get(inputNeuron.getOutputIDs().get(j));
-                receiver.feedInput(inputNeuron.getOutput() * inputNeuron.getOutputWeights().get(j));
+                int outputID = inputNeuron.getOutputIDs().get(j);
+                float outputWeight = inputNeuron.getOutputWeights().get(j);
+                Neuron receiver = neurons.get(outputID);
+                receiver.feedInput(inputNeuron.getOutput() * outputWeight);
             }
             unprocessed.remove(inputNeuron);
         }
 
+        System.out.println("Do the processing");
         int loops = 0;
         while (unprocessed.size() > 0) {
             loops++;
@@ -98,6 +105,7 @@ public class NeuralNetwork {
             }
         }
 
+        System.out.println("Finalise");
         // Copy output from output neurons into array, and return it.
         float[] outputs = new float[output.size()];
         for (int i = 0; i < output.size(); i++) {
@@ -110,12 +118,14 @@ public class NeuralNetwork {
 
         private float output;
         private ArrayList<Float> inputs;
+        private int inputCount;
 
         private ArrayList<Integer> outputIDs;
         private ArrayList<Float> outputWeights;
 
         Neuron() {
             inputs = new ArrayList<>();
+            inputCount = 0;
             outputIDs = new ArrayList<>();
             outputWeights = new ArrayList<>();
         }
@@ -126,7 +136,7 @@ public class NeuralNetwork {
         }
 
         void addInputConnection() {
-            inputs.add(null);
+            inputCount++;
         }
 
         List<Integer> getOutputIDs() {
@@ -146,29 +156,11 @@ public class NeuralNetwork {
         }
 
         boolean isReady() {
-            boolean foundNull = false;
-            for (Float f : inputs) {
-                if (f == null) {
-                    foundNull = true;
-                    break;
-                }
-            }
-            return !foundNull;
+            return inputs.size() == inputCount;
         }
 
-        // Adds an input to the neuron in the first slot available.
         void feedInput(float input) {
-            boolean foundSlot = false;
-            for (int i = 0; i < inputs.size(); i++) {
-                if (inputs.get(i) == null) {
-                    inputs.set(i, input);
-                    foundSlot = true;
-                    break;
-                }
-            }
-            if (!foundSlot) {
-                throw new RuntimeException("No input slot ready for input.");
-            }
+            inputs.add(input);
         }
 
         float getOutput() {
@@ -176,9 +168,7 @@ public class NeuralNetwork {
         }
 
         void reset() {
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, null);
-            }
+            inputs.clear();
             output = 0f;
         }
 
