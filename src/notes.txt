@@ -3,4 +3,7 @@ Add inputs for the valid directions, and maybe current position.
 
 
 Look for memory leaks and unnecessary new object creations.
-The game sometimes freezes still.
+The game sometimes freezes still. This may or may not be fixed. Note: It's not.
+
+
+Figure out how to evaluate a network when there are cycles.

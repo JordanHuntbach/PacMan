@@ -52,7 +52,6 @@ public class NeuralNetwork {
     }
 
     public float[] calculate(float[] input_parameter) {
-        System.out.println("NN CALCULATE");
         if (input_parameter.length != input.size()) {
             System.out.println("Input mismatch.");
             throw new IllegalArgumentException("Number of inputs must match number of input neurons in genome.");
@@ -90,16 +89,22 @@ public class NeuralNetwork {
                 return null;
             }
 
+            System.out.println("Check1.");
             Iterator<Neuron> it = unprocessed.iterator();
             while (it.hasNext()) {
+                System.out.println("Check2.");
                 Neuron neuron = it.next();
+                System.out.println("Check3.");
+                System.out.println(neuron);
                 if (neuron.isReady()) {     // If neuron has all its inputs, calculate the neuron's output...
                     neuron.calculate();
+                    System.out.println("Check4.");
                     for (int i = 0; i < neuron.getOutputIDs().size(); i++) { // ... and feed results to next neurons.
                         int receiverID = neuron.getOutputIDs().get(i);
                         float receiverValue = neuron.output * neuron.getOutputWeights().get(i);
                         neurons.get(receiverID).feedInput(receiverValue);
                     }
+                    System.out.println("Check5.");
                     it.remove();
                 }
             }
@@ -175,6 +180,11 @@ public class NeuralNetwork {
         // Takes any float, and returns a value between 0 and 1. An input of 0 returns 0.5
         private float sigmoidActivationFunction(float in) {
             return (float) (1f / (1f + Math.exp(-4.9d * in)));
+        }
+
+        @Override
+        public String toString() {
+            return "Neuron " + (isReady() ? "is ready" : "not ready");
         }
     }
 }

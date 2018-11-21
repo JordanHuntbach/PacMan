@@ -158,6 +158,7 @@ public abstract class Evaluator {
                 return species;
             }
         }
+        System.out.println("Couldn't get a species.");
         throw new RuntimeException("Couldn't get a species.");
     }
 
@@ -171,6 +172,7 @@ public abstract class Evaluator {
                 return genome;
             }
         }
+        System.out.println("Couldn't get a genome.");
         throw new RuntimeException("Couldn't get a genome.");
     }
 

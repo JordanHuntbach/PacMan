@@ -1,4 +1,3 @@
-import javax.xml.soap.Node;
 import java.util.*;
 
 public class Genome {
@@ -12,8 +11,6 @@ public class Genome {
 
     private Map<Integer, ConnectionGene> connections;
     private Map<Integer, NodeGene> nodes;
-
-    private float PROBABILITY_PERTURBING = 0.90f;
 
     Genome() {
         connections = new HashMap<>();
@@ -119,6 +116,7 @@ public class Genome {
 
     public void mutation() {
         for (ConnectionGene connection : connections.values()) {
+            float PROBABILITY_PERTURBING = 0.90f;
             if (random.nextFloat() < PROBABILITY_PERTURBING) {
                 connection.setWeight(connection.getWeight() * (random.nextFloat() * 4f - 2f));
             } else {
@@ -168,86 +166,20 @@ public class Genome {
     }
 
     public static float compatibilityDistance(Genome genome1, Genome genome2, float c1, float c2, float c3) {
-        int excessGenes = countExcessGenes(genome1, genome2);
-        int disjointGenes = countDisjointGenes(genome1, genome2);
-        float averageWeightDifference = averageWeightDifference(genome1, genome2);
-
-        return c1 * excessGenes + c2 * disjointGenes + c3 * averageWeightDifference;
-    }
-
-    public static int countMatchingGenes(Genome genome1, Genome genome2) {
-        int matchingGenes = 0;
-
-        List<Integer> nodeKeys1 = asSortedList(genome1.getNodes().keySet(), tempList1);
-        List<Integer> nodeKeys2 = asSortedList(genome2.getNodes().keySet(), tempList2);
-
-        int highestInnovation1 = nodeKeys1.get(nodeKeys1.size() - 1);
-        int highestInnovation2 = nodeKeys2.get(nodeKeys2.size() - 1);
-        int indices = Math.max(highestInnovation1, highestInnovation2);
-
-        for (int i = 0; i <= indices; i++) {
-            NodeGene node1 = genome1.getNodes().get(i);
-            NodeGene node2 = genome2.getNodes().get(i);
-
-            if (node1 != null && node2 != null) {
-                matchingGenes ++;
-            }
-        }
-
-        List<Integer> connectionKeys1 = asSortedList(genome1.getConnections().keySet(), tempList1);
-        List<Integer> connectionKeys2 = asSortedList(genome2.getConnections().keySet(), tempList2);
-
-        highestInnovation1 = connectionKeys1.get(connectionKeys1.size() - 1);
-        highestInnovation2 = connectionKeys2.get(connectionKeys2.size() - 1);
-        indices = Math.max(highestInnovation1, highestInnovation2);
-
-        for (int i = 0; i <= indices; i++) {
-            ConnectionGene connection1 = genome1.getConnections().get(i);
-            ConnectionGene connection2 = genome2.getConnections().get(i);
-
-            if (connection1 != null && connection2 != null) {
-                matchingGenes ++;
-            }
-        }
-
-        return matchingGenes;
-    }
-
-    private static float averageWeightDifference(Genome genome1, Genome genome2) {
+        int disjointGenes = 0;
         int matchingGenes = 0;
         float weightDifference = 0;
-
-        List<Integer> connectionKeys1 = asSortedList(genome1.getConnections().keySet(), tempList1);
-        List<Integer> connectionKeys2 = asSortedList(genome2.getConnections().keySet(), tempList2);
-
-        int highestInnovation1 = connectionKeys1.get(connectionKeys1.size() - 1);
-        int highestInnovation2 = connectionKeys2.get(connectionKeys2.size() - 1);
-        int indices = Math.max(highestInnovation1, highestInnovation2);
-
-        for (int i = 0; i <= indices; i++) {
-            ConnectionGene connection1 = genome1.getConnections().get(i);
-            ConnectionGene connection2 = genome2.getConnections().get(i);
-
-            if (connection1 != null && connection2 != null) {
-                matchingGenes ++;
-                weightDifference += Math.abs(connection1.getWeight() - connection2.getWeight());
-            }
-        }
-
-        return weightDifference / matchingGenes;
-    }
-
-    private static int countDisjointGenes(Genome genome1, Genome genome2) {
-        int disjointGenes = 0;
+        int excessGenes = 0;
 
         List<Integer> nodeKeys1 = asSortedList(genome1.getNodes().keySet(), tempList1);
         List<Integer> nodeKeys2 = asSortedList(genome2.getNodes().keySet(), tempList2);
 
         int highestInnovation1 = nodeKeys1.get(nodeKeys1.size() - 1);
         int highestInnovation2 = nodeKeys2.get(nodeKeys2.size() - 1);
-        int indices = Math.min(highestInnovation1, highestInnovation2);
+        int lower = Math.min(highestInnovation1, highestInnovation2);
+        int higher = Math.max(highestInnovation1, highestInnovation2);
 
-        for (int i = 0; i <= indices; i++) {
+        for (int i = 0; i <= lower; i++) {
             NodeGene node1 = genome1.getNodes().get(i);
             NodeGene node2 = genome2.getNodes().get(i);
 
@@ -257,15 +189,21 @@ public class Genome {
                 disjointGenes ++;
             }
         }
+        for (int i = lower; i <= higher; i++) {
+            if (genome1.getNodes().get(i) != null || genome2.getNodes().get(i) != null) {
+                excessGenes ++;
+            }
+        }
 
         List<Integer> connectionKeys1 = asSortedList(genome1.getConnections().keySet(), tempList1);
         List<Integer> connectionKeys2 = asSortedList(genome2.getConnections().keySet(), tempList2);
 
         highestInnovation1 = connectionKeys1.get(connectionKeys1.size() - 1);
         highestInnovation2 = connectionKeys2.get(connectionKeys2.size() - 1);
-        indices = Math.min(highestInnovation1, highestInnovation2);
+        lower = Math.min(highestInnovation1, highestInnovation2);
+        higher = Math.max(highestInnovation1, highestInnovation2);
 
-        for (int i = 0; i <= indices; i++) {
+        for (int i = 0; i <= lower; i++) {
             ConnectionGene connection1 = genome1.getConnections().get(i);
             ConnectionGene connection2 = genome2.getConnections().get(i);
 
@@ -273,56 +211,24 @@ public class Genome {
                 disjointGenes ++;
             } else if (connection2 == null && connection1 != null) {
                 disjointGenes ++;
+            } else if (connection1 != null) {
+                matchingGenes ++;
+                weightDifference += Math.abs(connection1.getWeight() - connection2.getWeight());
+            }
+        }
+        for (int i = lower; i <= higher; i++) {
+            if (genome1.getConnections().get(i) != null || genome2.getConnections().get(i) != null) {
+                excessGenes ++;
             }
         }
 
-        return disjointGenes;
-    }
+        float averageWeightDifference = weightDifference / matchingGenes;
 
-    private static int countExcessGenes(Genome genome1, Genome genome2) {
-        int excessGenes = 0;
+        int genome1Genes = genome1.getNodes().size() + genome1.getConnections().size();
+        int genome2Genes = genome2.getNodes().size() + genome2.getConnections().size();
+        int n = Math.max(genome1Genes, genome2Genes);
 
-        List<Integer> nodeKeys1 = asSortedList(genome1.getNodes().keySet(), tempList1);
-        List<Integer> nodeKeys2 = asSortedList(genome2.getNodes().keySet(), tempList2);
-
-        int highestInnovation1 = nodeKeys1.get(nodeKeys1.size() - 1);
-        int highestInnovation2 = nodeKeys2.get(nodeKeys2.size() - 1);
-
-        if (highestInnovation1 >= highestInnovation2) {
-            for (int i = highestInnovation2; i <= highestInnovation1; i++) {
-                if (genome1.getNodes().get(i) != null) {
-                    excessGenes ++;
-                }
-            }
-        } else {
-            for (int i = highestInnovation1; i <= highestInnovation2; i++) {
-                if (genome2.getNodes().get(i) != null) {
-                    excessGenes ++;
-                }
-            }
-        }
-
-        List<Integer> connectionKeys1 = asSortedList(genome1.getConnections().keySet(), tempList1);
-        List<Integer> connectionKeys2 = asSortedList(genome2.getConnections().keySet(), tempList2);
-
-        highestInnovation1 = connectionKeys1.get(connectionKeys1.size() - 1);
-        highestInnovation2 = connectionKeys2.get(connectionKeys2.size() - 1);
-
-        if (highestInnovation1 >= highestInnovation2) {
-            for (int i = highestInnovation2; i <= highestInnovation1; i++) {
-                if (genome1.getConnections().get(i) != null) {
-                    excessGenes ++;
-                }
-            }
-        } else {
-            for (int i = highestInnovation1; i <= highestInnovation2; i++) {
-                if (genome2.getConnections().get(i) != null) {
-                    excessGenes ++;
-                }
-            }
-        }
-
-        return excessGenes;
+        return (c1 * excessGenes / n) + (c2 * disjointGenes / n) + (c3 * averageWeightDifference);
     }
 
     // Sorts in ascending order.
