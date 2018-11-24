@@ -135,7 +135,7 @@ public class Game extends Application {
         mainStage.setTitle("Pac-Man");
 
         if (training) {
-//            guiSetup();
+            guiSetup();
             setUpNN();
         } else {
             newGame();
@@ -153,10 +153,8 @@ public class Game extends Application {
                 return playGame(genome, generation, member, highestScore);
             }
         };
-
-        for (int i = 0; i < 10; i++) {
-            evaluator.initialMutate();
-        }
+        evaluator.initialMutate();
+        evaluator.initialMutate();
 
         Task<Void> task = new Task<Void>() {
             @Override
@@ -257,14 +255,14 @@ public class Game extends Application {
 
         for (NodeGene nodeGene : genome.getNodes().values()) {
             if (nodeGene.getType() == NodeGene.TYPE.INPUT) {
-                ConnectionGene leftConnection = new ConnectionGene(nodeGene.getId(), left.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
-                genome.addConnectionGene(leftConnection, connectionInnovation);
-                ConnectionGene rightConnection = new ConnectionGene(nodeGene.getId(), right.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
-                genome.addConnectionGene(rightConnection, connectionInnovation);
                 ConnectionGene upConnection = new ConnectionGene(nodeGene.getId(), up.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
                 genome.addConnectionGene(upConnection, connectionInnovation);
                 ConnectionGene downConnection = new ConnectionGene(nodeGene.getId(), down.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
                 genome.addConnectionGene(downConnection, connectionInnovation);
+                ConnectionGene leftConnection = new ConnectionGene(nodeGene.getId(), left.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
+                genome.addConnectionGene(leftConnection, connectionInnovation);
+                ConnectionGene rightConnection = new ConnectionGene(nodeGene.getId(), right.getId(), random.nextFloat() * 2 - 1, true, connectionInnovation.getInnovation());
+                genome.addConnectionGene(rightConnection, connectionInnovation);
             }
         }
         return genome;
@@ -282,29 +280,31 @@ public class Game extends Application {
             getInputs(inputs);
             nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
 
-            float maximum = Float.MIN_VALUE;
-            int direction = -1;
-            for (int i = 0; i < nnOutputs.length; i++) {
-                if (nnOutputs[i] > maximum) {
-                    maximum = nnOutputs[i];
-                    direction = i;
+            if (nnOutputs != null) {
+                float maximum = Float.MIN_VALUE;
+                int direction = -1;
+                for (int i = 0; i < nnOutputs.length; i++) {
+                    if (nnOutputs[i] > maximum) {
+                        maximum = nnOutputs[i];
+                        direction = i;
+                    }
                 }
-            }
-            switch (direction) {
-                case 0:
-                    nextDirection = "UP";
-                    break;
-                case 1:
-                    nextDirection = "DOWN";
-                    break;
-                case 2:
-                    nextDirection = "LEFT";
-                    break;
-                case 3:
-                    nextDirection = "RIGHT";
-                    break;
-                default:
-                    System.out.println("Bad evaluation.");
+                switch (direction) {
+                    case 0:
+                        nextDirection = "UP";
+                        break;
+                    case 1:
+                        nextDirection = "DOWN";
+                        break;
+                    case 2:
+                        nextDirection = "LEFT";
+                        break;
+                    case 3:
+                        nextDirection = "RIGHT";
+                        break;
+                    default:
+                        System.out.println("Bad evaluation.");
+                }
             }
 
             updatePacman();
@@ -315,6 +315,7 @@ public class Game extends Application {
 
             eatPills();
 
+            // TODO: The memory issues are just a result of these lines.
 //            Platform.runLater(this::updateScreen);
 //            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 

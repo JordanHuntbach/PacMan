@@ -28,7 +28,4 @@ public class NodeGene {
         return id;
     }
 
-    public NodeGene copy() {
-        return new NodeGene(type, id);
-    }
 }

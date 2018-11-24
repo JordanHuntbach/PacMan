@@ -49,8 +49,4 @@ public class ConnectionGene {
     public void setExpressed(boolean expressed) {
         this.expressed = expressed;
     }
-
-    public ConnectionGene copy() {
-        return new ConnectionGene(inNode, outNode, weight, expressed, innovation);
-    }
 }

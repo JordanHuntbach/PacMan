@@ -69,6 +69,44 @@ public class Genome {
                 connectionImpossible = true;
             } else if (node1.getType() == NodeGene.TYPE.OUTPUT && node2.getType() == NodeGene.TYPE.OUTPUT) {
                 connectionImpossible = true;
+            } else if (node1 == node2) {
+                connectionImpossible = true;
+            }
+
+            if (reversed) {
+                NodeGene temp = node1;
+                node1 = node2;
+                node2 = temp;
+            }
+
+            // Check for circular structures.
+            if (!connectionImpossible && node2.getType() != NodeGene.TYPE.OUTPUT) {
+                List<Integer> needsChecking = new LinkedList<>();   // List of nodes that should have their connections checked.
+                List<Integer> nodeIDs = new LinkedList<>();        // List of nodes that require node2's result.
+                for (Integer connectionID : connections.keySet()) {
+                    ConnectionGene connectionGene = connections.get(connectionID);
+                    if (connectionGene.getInNode() == node2.getId()) {  // Connection comes from node2
+                        nodeIDs.add(connectionGene.getOutNode());
+                        needsChecking.add(connectionGene.getOutNode());
+                    }
+                }
+                while (!needsChecking.isEmpty()) {
+                    int nodeID = needsChecking.get(0);
+                    for (Integer connectionID : connections.keySet()) {
+                        ConnectionGene connectionGene = connections.get(connectionID);
+                        if (connectionGene.getInNode() == nodeID) { // The connection comes from the needsChecking node.
+                            nodeIDs.add(connectionGene.getOutNode());
+                            needsChecking.add(connectionGene.getOutNode());
+                        }
+                    }
+                    needsChecking.remove(0);
+                }
+                for (Integer i : nodeIDs) {     // Loop through dependent nodes
+                    if (i == node1.getId()) {   // If we make it here, then node1 calculation is dependent on node2.
+                        connectionImpossible = true;
+                        break;
+                    }
+                }
             }
 
             if(connectionImpossible) {
@@ -106,8 +144,8 @@ public class Genome {
                     innovationNumber = innovation.getInnovation();
                 }
 
-                float weight = random.nextFloat() * 2 - 1;
-                ConnectionGene newConnection = new ConnectionGene(reversed ? node1.getId() : node2.getId(), reversed ? node2.getId() : node1.getId(), weight, true, innovationNumber);
+                float weight = random.nextFloat() * 2f - 1f;
+                ConnectionGene newConnection = new ConnectionGene(node1.getId(), node2.getId(), weight, true, innovationNumber);
                 addConnectionGene(newConnection, innovation);
                 success = true;
             }
@@ -125,21 +163,66 @@ public class Genome {
         }
     }
 
-    // TODO: Can check if the node exists by looking for connections that go from inNode -> X -> outNode, where no other connections go to/from X.
     public void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
         List<ConnectionGene> connectionsList = new ArrayList<>(connections.values());
         int index = random.nextInt(connectionsList.size());
         ConnectionGene connection = connectionsList.get(index);
-
-        NodeGene inNode = nodes.get(connection.getInNode());
-        NodeGene outNode = nodes.get(connection.getOutNode());
-
         connection.setExpressed(false);
 
-        NodeGene newNode = new NodeGene(NodeGene.TYPE.HIDDEN, nodeInnovation.getInnovation());
+        int inNodeID = connection.getInNode();
+        int outNodeID = connection.getOutNode();
+
+        NodeGene inNode = nodes.get(inNodeID);
+        NodeGene outNode = nodes.get(outNodeID);
+
+        // Get the list of node IDs, X, that inNode connects to only once.
+        List<Integer> outIDs = new ArrayList<>();
+        List<Integer> excluded = new ArrayList<>();
+        for (ConnectionGene connectionGene : connectionInnovation.getConnectionGenes().values()) {
+            int in = connectionGene.getInNode();
+            int out = connectionGene.getOutNode();
+            if (in == inNodeID && !excluded.contains(out)) {
+                if (outIDs.contains(out)) {
+                    outIDs.remove(outIDs.indexOf(out));
+                    excluded.add(out);
+                } else {
+                    outIDs.add(out);
+                }
+            }
+        }
+
+        // Get the list of node IDs that the X nodes connect to.
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        for (Integer node : outIDs) {
+            map.put(node, new ArrayList<>());
+        }
+        for (ConnectionGene connectionGene : connectionInnovation.getConnectionGenes().values()) {
+            int in = connectionGene.getInNode();
+            if (outIDs.contains(in)) {
+                map.get(in).add(connectionGene.getOutNode());
+            }
+        }
+
+        // If there is an X that links to a single other node, which is the outNode from before, that X is the newNode..
+        NodeGene newNode = null;
+        for (Integer integer : map.keySet()) {
+            List<Integer> list = map.get(integer);
+            if (list.size() == 1 && list.get(0) == outNodeID) {
+                newNode = nodeInnovation.getNodeGenes().get(integer);
+                break;
+            }
+        }
+
+        // ..otherwise, make a new node.
+        if (newNode == null) {
+            newNode = new NodeGene(NodeGene.TYPE.HIDDEN, nodeInnovation.getInnovation());
+        }
+
+        // Make the new connections to this node.
         ConnectionGene inToNew = new ConnectionGene(inNode.getId(), newNode.getId(), 1f, true, connectionInnovation.getInnovation());
         ConnectionGene newToOut = new ConnectionGene(newNode.getId(), outNode.getId(), connection.getWeight(), true, connectionInnovation.getInnovation());
 
+        // Add the new node and connections to the genome.
         addNodeGene(newNode, nodeInnovation);
         addConnectionGene(inToNew, connectionInnovation);
         addConnectionGene(newToOut, connectionInnovation);
@@ -155,10 +238,17 @@ public class Genome {
 
         for (ConnectionGene parent1connection : parent1.getConnections().values()) {
             if (parent2.getConnections().containsKey(parent1connection.getInnovation())) {
-                ConnectionGene childConnectionGene = random.nextBoolean() ? parent1connection.copy() : parent2.getConnections().get(parent1connection.getInnovation()).copy();
+                ConnectionGene parent2connection = parent2.getConnections().get(parent1connection.getInnovation());
+                ConnectionGene childConnectionGene = random.nextBoolean() ? new ConnectionGene(parent1connection) : new ConnectionGene(parent2connection);
+
+                boolean disabled = !parent1connection.isExpressed() || !parent2connection.isExpressed();
+                if (disabled && random.nextFloat() > 0.3f) {
+                    childConnectionGene.setExpressed(false);
+                }
+
                 child.addConnectionGene(childConnectionGene, counterInnovation);
             } else {
-                child.addConnectionGene(parent1connection.copy(), counterInnovation);
+                child.addConnectionGene(new ConnectionGene(parent1connection), counterInnovation);
             }
         }
 

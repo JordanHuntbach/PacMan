@@ -22,7 +22,6 @@ public class Counter {
         if (!connectionGeneMap.containsKey(id)) {
             connectionGeneMap.put(id, gene);
         }
-        connectionGeneMap.put(currentInnovation, gene);
     }
 
     public void addNodeGene(NodeGene gene) {

@@ -11,8 +11,8 @@ public abstract class Evaluator {
     private float c1 = 1.0f;
     private float c2 = 1.0f;
     private float c3 = 0.4f;
-    private float d = 10.0f;
-    private float MUTATION_RATE = 0.5f;
+    private float d = 5.0f;
+    private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.1f;
     private float ADD_NODE_RATE = 0.1f;
 
@@ -45,10 +45,12 @@ public abstract class Evaluator {
         System.out.println("Mutating genomes.");
         int counter = 0;
         for (Genome genome : genomes) {
-            genome.mutation();
             if (counter < 10) {
                 counter++;
                 genome.addNodeMutation(nodeInnovation, connectionInnovation);
+            }
+            for (int i = 0; i < 50; i++) {
+                genome.mutation();
             }
         }
     }
@@ -101,7 +103,7 @@ public abstract class Evaluator {
             }
         }
 
-        System.out.println("Moving the best of each species to the next generation.");
+        System.out.println("\nMoving the best of each species to the next generation.");
         for (Species species : speciesList) {
             float bestFitness = 0;
             Genome bestGenome = null;
@@ -116,9 +118,7 @@ public abstract class Evaluator {
         }
 
         System.out.println("Breeding " + (populationSize - nextGenerationGenomes.size()) +  " new members.");
-        count = 0;
         while (nextGenerationGenomes.size() < populationSize) {
-            System.out.print(count++ + ".. ");
             Species species = getFitnessBiasedSpecies();
 
             Genome parent1 = getFitnessBiasedGenome(species);
@@ -145,7 +145,7 @@ public abstract class Evaluator {
 
         genomes = nextGenerationGenomes;
         nextGenerationGenomes = new ArrayList<>();
-        System.out.println("Generation " + generationNumber + " processed.\n\n");
+        System.out.println("Generation " + generationNumber + " processed. Current high score: " + highestScore + "\n\n");
     }
 
     private Species getFitnessBiasedSpecies() {
