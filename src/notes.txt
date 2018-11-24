@@ -1,9 +1,10 @@
-Fix the random ghost behaviour.
-Add inputs for the valid directions, and maybe current position.
+Notes:
+    After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Trying 6 next.
+    Managed to get a high score of 2810 after 100 generations - I think it's time to work on a .genome file.
 
+Things that need doing:
+    Fix the random ghost behaviour.
+    Add inputs for the valid directions, and maybe current position.
 
-Look for memory leaks and unnecessary new object creations when using GUI.
-
-Can add a stagnation variable, so that if x generations pass with no improvement, some species are removed.
-
-After about 30 generations, each member is in its own species.
+Things to experiment with:
+    Change the stagnation protocol to entire species altogether if they're not improving.

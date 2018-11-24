@@ -1,3 +1,5 @@
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public abstract class Evaluator {
@@ -11,7 +13,7 @@ public abstract class Evaluator {
     private float c1 = 1.0f;
     private float c2 = 1.0f;
     private float c3 = 0.4f;
-    private float d = 5.0f;
+    private float d = 6.0f;
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.1f;
     private float ADD_NODE_RATE = 0.1f;
@@ -24,6 +26,7 @@ public abstract class Evaluator {
 
     private float highestScore = 0;
     private Genome fittestGenome = null;
+    private int stagnation = 0;
 
     private int generationNumber = 0;
 
@@ -42,7 +45,25 @@ public abstract class Evaluator {
 
     abstract float evaluateGenome(Genome genome, int generationNumber, int memberNumber, float highestScore);
 
-    void initialMutate(){
+    void saveBestGenome() {
+        try {
+            FileWriter fileWriter = new FileWriter("bestGenome.gen");
+            fileWriter.write("SCORE ACHEIVED: " + highestScore + "\n");
+            for (ConnectionGene connectionGene : fittestGenome.getConnections().values()) {
+                String geneAsString = connectionGene.getInnovation() + "|"
+                        + connectionGene.getInNode() + "|"
+                        + connectionGene.getOutNode() + "|"
+                        + connectionGene.getWeight() + "|"
+                        + connectionGene.isExpressed() + "\n";
+                fileWriter.write(geneAsString);
+            }
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void initialMutate() {
         System.out.println("Mutating genomes.");
         int counter = 0;
         for (Genome genome : genomes) {
@@ -57,11 +78,13 @@ public abstract class Evaluator {
     }
 
     void evaluate() {
+        stagnation ++;
         generationNumber ++;
         speciesList.forEach(Species::reset);
         speciesMap.clear();
         nextGenerationGenomes.clear();
 
+        System.out.println("");
         System.out.println("Allocating each genome a species.");
         for (Genome genome : genomes) {
             boolean foundSpecies = false;
@@ -80,10 +103,6 @@ public abstract class Evaluator {
             }
         }
 
-        System.out.println("Removing unused species.");
-        speciesList.removeIf(species -> species.getMembers().isEmpty());
-        System.out.println("There are currently " + speciesList.size() + " species.");
-
         int count = 0;
 
         System.out.println("Evaluating " + populationSize + " genomes and assigning fitness.");
@@ -101,10 +120,32 @@ public abstract class Evaluator {
                 System.out.println("New highest score found! (" + score + ")");
                 highestScore = score;
                 fittestGenome = genome;
+                stagnation = 0;
             }
         }
+        System.out.println("");
 
-        System.out.println("\nMoving the best of each species to the next generation.");
+        if (stagnation > 30) {
+            System.out.println("Stagnant population. Killing off all but 20 genomes.");
+
+            genomes.sort(new FitnessComparator());
+            Collections.reverse(genomes);
+            for (int i = genomes.size() - 1; i >= 20; i--) {
+                Genome genome = genomes.get(i);
+                Species species = speciesMap.get(genome);
+                species.removeMember(genome);
+                speciesMap.remove(genome);
+                genomes.remove(genome);
+            }
+
+            stagnation = 0;
+        }
+
+        System.out.println("Removing unused species.");
+        speciesList.removeIf(species -> species.getMembers().isEmpty());
+        System.out.println("There are currently " + speciesList.size() + " species.");
+
+        System.out.println("Moving the best of each species to the next generation.");
         for (Species species : speciesList) {
             float bestFitness = 0;
             Genome bestGenome = null;
@@ -146,7 +187,7 @@ public abstract class Evaluator {
 
         genomes = nextGenerationGenomes;
         nextGenerationGenomes = new ArrayList<>();
-        System.out.println("Generation " + generationNumber + " processed. Current high score: " + highestScore + "\n\n");
+        System.out.println("Generation " + generationNumber + " processed. Current high score: " + highestScore + "\n");
     }
 
     private Species getFitnessBiasedSpecies() {
@@ -196,6 +237,10 @@ public abstract class Evaluator {
             this.members.add(member);
         }
 
+        void removeMember(Genome member) {
+            this.members.remove(member);
+        }
+
         List<Genome> getMembers() {
             return members;
         }
@@ -213,5 +258,14 @@ public abstract class Evaluator {
             members.clear();
             totalAdjustedFitness = 0f;
         }
+    }
+
+    public class FitnessComparator implements Comparator<Genome> {
+
+        @Override
+        public int compare(Genome one, Genome two) {
+            return Float.compare(one.getFitness(), two.getFitness());
+        }
+
     }
 }

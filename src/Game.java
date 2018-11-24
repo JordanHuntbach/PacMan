@@ -75,6 +75,9 @@ public class Game extends Application {
 
     private int ghostsEaten;
 
+    private Group root;
+    private Scene scene;
+    private Stage mainStage;
     private Canvas canvas;
     private GraphicsContext gc;
 
@@ -104,8 +107,6 @@ public class Game extends Application {
 
     private String currentDirection;
     private String nextDirection;
-
-    private Stage mainStage;
 
     private int mouthPause = 0;
     private boolean mouthOpen = true;
@@ -162,12 +163,10 @@ public class Game extends Application {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() {
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 2; i++) {
                     evaluator.evaluate();
                 }
-
-                // TODO: Save the population (or just the best genome) to a file, so it can be re-used later.
-
+                evaluator.saveBestGenome();
                 return null;
             }
         };
@@ -278,6 +277,15 @@ public class Game extends Application {
     private float playGame(Genome genome, int genNumber, int memNumber, float highScore) {
         gameSetup();
 
+        if (trainWithGUI) {
+            Platform.runLater(this::refreshCanvas);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
         float [] inputs = new float[26];
@@ -323,7 +331,6 @@ public class Game extends Application {
             eatPills();
 
             if (trainWithGUI) {
-                // TODO: The memory issues are just a result of these lines.
                 Platform.runLater(this::updateScreen);
                 Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 
@@ -345,18 +352,12 @@ public class Game extends Application {
             }
         }
 
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         return score;
     }
 
     private void guiSetup() {
-        Group root = new Group();
-        Scene scene = new Scene(root, 592, 720);
+        root = new Group();
+        scene = new Scene(root, 592, 720);
         mainStage.setScene(scene);
         mainStage.show();
 
@@ -365,7 +366,6 @@ public class Game extends Application {
 
         gc = canvas.getGraphicsContext2D();
         gc.setFont(Font.font("Helvetica", FontWeight.BOLD,24));
-        gc.setFill(Color.GREEN);
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(1);
 
@@ -373,6 +373,20 @@ public class Game extends Application {
             scene.setOnKeyPressed(
                     e -> nextDirection = e.getCode().toString());
         }
+    }
+
+    private void refreshCanvas() {
+        root.getChildren().remove(canvas);
+        canvas = new Canvas(592,720);
+        root.getChildren().add(canvas);
+
+        gc = canvas.getGraphicsContext2D();
+        gc.setFont(Font.font("Helvetica", FontWeight.BOLD,24));
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(1);
+
+        gc.setFill(Color.BLACK);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
     private void gameSetup() {
@@ -505,7 +519,6 @@ public class Game extends Application {
         // Distance + direction to closest powerPill.
         Sprite powerPill = closestPill(pillsList);
         inputDistanceAndDirection(powerPill, inputs, access);
-        access += 3;
     }
 
     private void inputDistanceAndDirection(Sprite sprite, float[] inputs, int access) {
@@ -1123,7 +1136,7 @@ public class Game extends Application {
         exitButton.setOnAction(event -> Platform.exit());
         grid.add(exitButton, 0, 3);
 
-        Scene scene = new Scene(grid, 592,720);
+        scene = new Scene(grid, 592,720);
         mainStage.setScene(scene);
     }
 
