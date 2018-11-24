@@ -15,6 +15,7 @@ public abstract class Evaluator {
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.1f;
     private float ADD_NODE_RATE = 0.1f;
+    private float CHILD_IS_PARENT_CLONE = 0.1f;
 
     private Counter nodeInnovation;
     private Counter connectionInnovation;
@@ -87,7 +88,7 @@ public abstract class Evaluator {
 
         System.out.println("Evaluating " + populationSize + " genomes and assigning fitness.");
         for (Genome genome : genomes) {
-            System.out.print(count + ".. ");
+            System.out.print(count + "|");
             Species species = speciesMap.get(genome);
 
             float score = evaluateGenome(genome, generationNumber, count++, highestScore); // Play the game
@@ -126,9 +127,9 @@ public abstract class Evaluator {
 
             Genome child;
             if (parent1.getFitness() > parent2.getFitness()) {
-                child = Genome.crossover(parent1, parent2, nodeInnovation, connectionInnovation);
+                child = random.nextFloat() > CHILD_IS_PARENT_CLONE ? Genome.crossover(parent1, parent2, nodeInnovation, connectionInnovation) : new Genome(parent1);
             } else {
-                child = Genome.crossover(parent2, parent1, nodeInnovation, connectionInnovation);
+                child = random.nextFloat() > CHILD_IS_PARENT_CLONE ? Genome.crossover(parent2, parent1, nodeInnovation, connectionInnovation) : new Genome(parent2);
             }
 
             if (random.nextFloat() < MUTATION_RATE) {

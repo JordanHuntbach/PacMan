@@ -108,7 +108,11 @@ public class NeuralNetwork {
         // Copy output from output neurons into array, and return it.
         float[] outputs = new float[output.size()];
         for (int i = 0; i < output.size(); i++) {
-            outputs[i] = neurons.get(output.get(i)).getOutput();
+            float result = neurons.get(output.get(i)).getOutput();
+            if (Float.isNaN(result)) {
+                System.out.println("NAN");
+            }
+            outputs[i] = result;
         }
         return outputs;
     }

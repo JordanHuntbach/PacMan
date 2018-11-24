@@ -122,6 +122,7 @@ public class Game extends Application {
 
     private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
     private boolean training = true; // TRUE HAS THE NEURAL NETWORK TRAIN
+    private boolean trainWithGUI = false;
     private int populationSize = 75;
     private boolean debug = false;
 
@@ -135,7 +136,9 @@ public class Game extends Application {
         mainStage.setTitle("Pac-Man");
 
         if (training) {
-            guiSetup();
+            if (trainWithGUI) {
+                guiSetup();
+            }
             setUpNN();
         } else {
             newGame();
@@ -233,14 +236,18 @@ public class Game extends Application {
         genome.addNodeGene(clydeEdible, nodeInnovation);
 
         NodeGene distanceToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene directionToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene closestPillUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene closestPillLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         genome.addNodeGene(distanceToClosestPill, nodeInnovation);
-        genome.addNodeGene(directionToClosestPill, nodeInnovation);
+        genome.addNodeGene(closestPillUpOrDown, nodeInnovation);
+        genome.addNodeGene(closestPillLeftOrRight, nodeInnovation);
 
         NodeGene distanceToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene directionToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene closestPowerPillUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene closestPowerPillLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
         genome.addNodeGene(distanceToClosestPowerPill, nodeInnovation);
-        genome.addNodeGene(directionToClosestPowerPill, nodeInnovation);
+        genome.addNodeGene(closestPowerPillUpOrDown, nodeInnovation);
+        genome.addNodeGene(closestPowerPillLeftOrRight, nodeInnovation);
 
         NodeGene up = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene down = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
@@ -273,7 +280,7 @@ public class Game extends Application {
 
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
-        float [] inputs = new float[24];
+        float [] inputs = new float[26];
         float [] nnOutputs;
 
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
@@ -315,14 +322,16 @@ public class Game extends Application {
 
             eatPills();
 
-            // TODO: The memory issues are just a result of these lines.
-//            Platform.runLater(this::updateScreen);
-//            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
+            if (trainWithGUI) {
+                // TODO: The memory issues are just a result of these lines.
+                Platform.runLater(this::updateScreen);
+                Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             for (Ghost ghost : ghosts) {
@@ -337,7 +346,7 @@ public class Game extends Application {
         }
 
         try {
-            Thread.sleep(20);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -476,23 +485,42 @@ public class Game extends Application {
 
     private void getInputs(float[] inputs) {
         int access = 0;
-        // Active, distance, direction vertical, direction horizontal, edible for blinky, piny, inky, clyde
+
         for (Ghost ghost : ghosts) {
             inputs[access++] = ghost.isActive() ? 1 : -1;
-            float distance = distanceToSprite(ghost);
-            inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
-            double direction = Math.toRadians(directionToSprite(ghost));
-            inputs[access++] = (float) Math.cos(direction);
-            inputs[access++] = (float) Math.sin(direction);
+            inputDistanceAndDirection(ghost, inputs, access);
+            access += 3;
             inputs[access++] = ghost.isSpooked() ? 1 : -1;
         }
 
+        // Distance + direction to closest pill.
         Sprite pill = closestPill(pillsList);
+        inputDistanceAndDirection(pill, inputs, access);
+        access += 3;
+
+        // Distance + direction to closest powerPill.
         Sprite powerPill = closestPill(pillsList);
-        inputs[access++] = distanceToSprite(pill);
-        inputs[access++] = (float) directionToSprite(pill);
-        inputs[access++] = distanceToSprite(powerPill);
-        inputs[access] = (float) directionToSprite(powerPill);
+        inputDistanceAndDirection(powerPill, inputs, access);
+        access += 3;
+    }
+
+    private void inputDistanceAndDirection(Sprite sprite, float[] inputs, int access) {
+        if (sprite == null) {
+            inputs[access++] = 0;
+            inputs[access++] = 0;
+            inputs[access] = 0;
+        } else {
+            float distance = distanceToSprite(sprite);
+            inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
+            if (distance != 0) {
+                double direction = Math.toRadians(directionToSprite(sprite));
+                inputs[access++] = (float) Math.cos(direction);
+                inputs[access] = (float) Math.sin(direction);
+            } else {
+                inputs[access++] = 0;
+                inputs[access] = 0;
+            }
+        }
     }
 
     private Sprite closestPill(List<Sprite> pills) {
@@ -513,13 +541,21 @@ public class Game extends Application {
     private float distanceToSprite(Sprite sprite) {
         float dx = (float) Math.abs(pacman.getPositionX() - sprite.getPositionX());
         float dy = (float) Math.abs(pacman.getPositionY() - sprite.getPositionY());
-        return (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        if (Float.isNaN(distance)) {
+            System.out.println("Distance NaN");
+        }
+        return distance;
     }
 
     private double directionToSprite(Sprite sprite) {
         double x = (sprite.getPositionX() - pacman.getPositionX()); // +ve if sprite to the right
         double y = (pacman.getPositionY() - sprite.getPositionY()); // +ve if sprite above
-        return Math.toDegrees(Math.atan(y / x)) - 90;
+        double angle = Math.toDegrees(Math.atan(y / x)) - 90;
+        if (Double.isNaN(angle)) {
+            System.out.println("Direction NaN");
+        }
+        return angle;
     }
 
     private void newGame() {

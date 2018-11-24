@@ -3,3 +3,7 @@ Add inputs for the valid directions, and maybe current position.
 
 
 Look for memory leaks and unnecessary new object creations when using GUI.
+
+Can add a stagnation variable, so that if x generations pass with no improvement, some species are removed.
+
+Investigate why the NN can return {NaN}^4
