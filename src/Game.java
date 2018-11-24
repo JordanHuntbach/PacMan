@@ -123,7 +123,7 @@ public class Game extends Application {
     private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
     private boolean training = true; // TRUE HAS THE NEURAL NETWORK TRAIN
     private boolean trainWithGUI = false;
-    private int populationSize = 75;
+    private int populationSize = 100;
     private boolean debug = false;
 
     public static void main(String[] args) {
@@ -162,7 +162,7 @@ public class Game extends Application {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() {
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 100; i++) {
                     evaluator.evaluate();
                 }
 
@@ -485,6 +485,10 @@ public class Game extends Application {
 
     private void getInputs(float[] inputs) {
         int access = 0;
+
+        // Current position.
+
+        // Can turn left/right/up/down.
 
         for (Ghost ghost : ghosts) {
             inputs[access++] = ghost.isActive() ? 1 : -1;

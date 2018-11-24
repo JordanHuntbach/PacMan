@@ -57,7 +57,7 @@ public class NeuralNetwork {
     public float[] calculate(float[] input_parameter) {
         if (input_parameter.length != input.size()) {
             System.out.println("Input mismatch.");
-            throw new IllegalArgumentException("Number of inputsReady must match number of input neurons in genome.");
+            throw new IllegalArgumentException("Number of inputs must match number of input neurons in genome.");
         }
 
         neurons.keySet().forEach(key -> neurons.get(key).reset());
@@ -110,7 +110,7 @@ public class NeuralNetwork {
         for (int i = 0; i < output.size(); i++) {
             float result = neurons.get(output.get(i)).getOutput();
             if (Float.isNaN(result)) {
-                System.out.println("NAN");
+                System.out.println("NaN in network");
             }
             outputs[i] = result;
         }
