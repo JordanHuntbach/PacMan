@@ -1,8 +1,11 @@
 Notes:
-    After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Trying 6 next.
-    Managed to get a high score of 2810 after 100 generations - I think it's time to work on a .genome file.
+    After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Try 5 next.
+    Managed to get a high score of 2810 after 100 generations.
 
 Things that need doing:
+    Remove the animation timer from the main game loop.
+    Remove all the if(simulation) stuff, except for the commented one that updates the screen, and add one that pauses the
+        game for a bit if it's not a simulation.
     Fix the random ghost behaviour.
     Add inputs for the valid directions, and maybe current position.
 

@@ -49,4 +49,9 @@ public class ConnectionGene {
     public void setExpressed(boolean expressed) {
         this.expressed = expressed;
     }
+
+    public boolean sameConnection(ConnectionGene connectionGene) {
+        return connectionGene.getInNode() == this.inNode && connectionGene.getOutNode() == this.outNode;
+    }
+
 }

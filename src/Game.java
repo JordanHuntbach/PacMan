@@ -15,6 +15,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.animation.AnimationTimer;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -117,15 +121,18 @@ public class Game extends Application {
     private int roundsCounter;
     private int movesCounter;
 
-    private Counter nodeInnovation;
-    private Counter connectionInnovation;
+    private Counter nodeInnovation = new Counter();
+    private Counter connectionInnovation = new Counter();
     private Evaluator evaluator;
 
-    private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
-    private boolean training = true; // TRUE HAS THE NEURAL NETWORK TRAIN
+    private boolean ai = true; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
+    private boolean training = false; // TRUE HAS THE NEURAL NETWORK TRAIN
     private boolean trainWithGUI = false;
     private int populationSize = 100;
     private boolean debug = false;
+
+    private float [] inputs = new float[26];
+    private float [] nnOutputs = new float[4];
 
     public static void main(String[] args) {
         launch(args);
@@ -147,11 +154,7 @@ public class Game extends Application {
     }
 
     private void setUpNN() {
-        nodeInnovation = new Counter();
-        connectionInnovation = new Counter();
-        Genome genome = randomGenome();
-
-        evaluator = new Evaluator(populationSize, genome, nodeInnovation, connectionInnovation) {
+        evaluator = new Evaluator(populationSize, newGenome(), nodeInnovation, connectionInnovation) {
             @Override
             float evaluateGenome(Genome genome, int generation, int member, float highestScore) {
                 return playGame(genome, generation, member, highestScore);
@@ -163,7 +166,7 @@ public class Game extends Application {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 100; i++) {
                     evaluator.evaluate();
                 }
                 evaluator.saveBestGenome();
@@ -173,10 +176,9 @@ public class Game extends Application {
 
         // Run task in new thread
         new Thread(task).start();
-
     }
 
-    private Genome randomGenome() {
+    private Genome newGenome() {
         /* Inputs are:
            Distance / direction to each ghost
            Is ghost edible
@@ -288,39 +290,9 @@ public class Game extends Application {
 
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
-        float [] inputs = new float[26];
-        float [] nnOutputs;
-
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
-            getInputs(inputs);
-            nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
 
-            if (nnOutputs != null) {
-                float maximum = Float.MIN_VALUE;
-                int direction = -1;
-                for (int i = 0; i < nnOutputs.length; i++) {
-                    if (nnOutputs[i] > maximum) {
-                        maximum = nnOutputs[i];
-                        direction = i;
-                    }
-                }
-                switch (direction) {
-                    case 0:
-                        nextDirection = "UP";
-                        break;
-                    case 1:
-                        nextDirection = "DOWN";
-                        break;
-                    case 2:
-                        nextDirection = "LEFT";
-                        break;
-                    case 3:
-                        nextDirection = "RIGHT";
-                        break;
-                    default:
-                        System.out.println("Bad evaluation.");
-                }
-            }
+            getNextDirectionFromNN(neuralNetwork);
 
             updatePacman();
 
@@ -353,6 +325,38 @@ public class Game extends Application {
         }
 
         return score;
+    }
+
+    private void getNextDirectionFromNN(NeuralNetwork neuralNetwork){
+        getInputs(inputs);
+        nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
+
+        if (nnOutputs != null) {
+            float maximum = Float.MIN_VALUE;
+            int direction = -1;
+            for (int i = 0; i < nnOutputs.length; i++) {
+                if (nnOutputs[i] > maximum) {
+                    maximum = nnOutputs[i];
+                    direction = i;
+                }
+            }
+            switch (direction) {
+                case 0:
+                    nextDirection = "UP";
+                    break;
+                case 1:
+                    nextDirection = "DOWN";
+                    break;
+                case 2:
+                    nextDirection = "LEFT";
+                    break;
+                case 3:
+                    nextDirection = "RIGHT";
+                    break;
+                default:
+                    System.out.println("Bad evaluation.");
+            }
+        }
     }
 
     private void guiSetup() {
@@ -575,6 +579,61 @@ public class Game extends Application {
         return angle;
     }
 
+//    void saveBestGenome() {
+//        try {
+//            FileWriter fileWriter = new FileWriter("bestGenome.gen");
+//            fileWriter.write("SCORE ACHEIVED: " + highestScore + "\n");
+//            for (ConnectionGene connectionGene : fittestGenome.getConnections().values()) {
+//                String geneAsString = connectionGene.getInnovation() + "|"
+//                        + connectionGene.getInNode() + "|"
+//                        + connectionGene.getOutNode() + "|"
+//                        + connectionGene.getWeight() + "|"
+//                        + connectionGene.isExpressed() + "\n";
+//                fileWriter.write(geneAsString);
+//            }
+//            fileWriter.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    private Genome loadGenome() {
+        ArrayList<String> lines = new ArrayList<>();
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("bestGenome.gen"));
+            String line;
+            while ((line = reader.readLine()) != null)
+            {
+                lines.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        List<ConnectionGene> connectionGenes = new ArrayList<>();
+
+        lines.remove(0);
+        for (String line : lines) {
+            String[] things = line.split("\\|");
+            int innovation = Integer.valueOf(things[0]);
+            int inNode = Integer.valueOf(things[1]);
+            int outNode = Integer.valueOf(things[2]);
+            float weight = Float.valueOf(things[3]);
+            boolean expressed = Boolean.valueOf(things[4]);
+
+            ConnectionGene connectionGene = new ConnectionGene(inNode, outNode, weight, expressed, innovation);
+            connectionGenes.add(connectionGene);
+        }
+
+        Genome genome = newGenome();
+
+        genome.overwriteConnections(connectionGenes);
+
+        return genome;
+    }
+
     private void newGame() {
         guiSetup();
         gameSetup();
@@ -582,6 +641,8 @@ public class Game extends Application {
         if (ai) {
             nextDirection = "LEFT";
         }
+
+        NeuralNetwork neuralNetwork = new NeuralNetwork(loadGenome());
 
         new AnimationTimer() {
             public void handle(long currentNanoTime) {
@@ -608,10 +669,13 @@ public class Game extends Application {
                         String next = mcts.nextDirection();
                         movesCounter++;
                         if (next != null) {
+                            // This is when the MCTS is still navigating the tree.
                             nextDirection = next;
                         } else if (movesCounter < MCTS.MAX_MOVES) {
-                            nextDirection = PacManController.getNextDirection(pacman);
+                            // This is when the tree navigation is done, so the neural network is responsible for making moves.
+                            getNextDirectionFromNN(neuralNetwork);
                         } else {
+                            // Max moves used. Back-propagate and restore state.
                             mcts.backPropagation(score);
                             restoreFromState(realState);
                         }

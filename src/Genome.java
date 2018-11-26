@@ -30,6 +30,50 @@ public class Genome {
         }
     }
 
+    public void overwriteConnections(List<ConnectionGene> connectionGenes) {
+        List<Integer> inputNodes = new ArrayList<>();
+        List<Integer> outputNodes = new ArrayList<>();
+        List<Integer> hiddenNodes = new ArrayList<>();
+
+        for (Integer id : nodes.keySet()) {
+            if (nodes.get(id).getType() == NodeGene.TYPE.INPUT) {
+                inputNodes.add(id);
+            } else if (nodes.get(id).getType() == NodeGene.TYPE.OUTPUT) {
+                outputNodes.add(id);
+            }
+        }
+
+        // Overwrite the values of the existing connection genes.
+        for (ConnectionGene existingConnectionGene : connections.values()) {
+            for (ConnectionGene otherConnectionGene : connectionGenes) {
+                if (existingConnectionGene.sameConnection(otherConnectionGene)) {
+                    existingConnectionGene.setExpressed(otherConnectionGene.isExpressed());
+                    existingConnectionGene.setWeight(otherConnectionGene.getWeight());
+
+                    connectionGenes.remove(otherConnectionGene);
+                    break;
+                }
+            }
+        }
+
+        // Create new connection genes to match those passed in.
+        for (ConnectionGene connectionGene : connectionGenes) {
+            int inNode = connectionGene.getInNode();
+            int outNode = connectionGene.getOutNode();
+
+            if (!inputNodes.contains(inNode) && !hiddenNodes.contains(inNode)) {
+                nodes.put(inNode, new NodeGene(NodeGene.TYPE.HIDDEN, inNode));
+                hiddenNodes.add(inNode);
+            }
+            if (!outputNodes.contains(outNode) && !hiddenNodes.contains(outNode)) {
+                nodes.put(outNode, new NodeGene(NodeGene.TYPE.HIDDEN, outNode));
+                hiddenNodes.add(outNode);
+            }
+
+            connections.put(connections.size(), connectionGene);
+        }
+    }
+
     public void addConnectionGene(ConnectionGene connectionGene, Counter innovation) {
         connections.put(connectionGene.getInnovation(), connectionGene);
         innovation.addConnectionGene(connectionGene);

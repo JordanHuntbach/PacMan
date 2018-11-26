@@ -13,7 +13,7 @@ public abstract class Evaluator {
     private float c1 = 1.0f;
     private float c2 = 1.0f;
     private float c3 = 0.4f;
-    private float d = 6.0f;
+    private float d = 5.0f;
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.1f;
     private float ADD_NODE_RATE = 0.1f;
