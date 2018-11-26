@@ -7,7 +7,6 @@ import java.util.Random;
 public class Ghost extends Sprite {
 
     private int SPEED = 2;
-    private boolean speedUp = false;
 
     private boolean chase = true;
 
@@ -195,14 +194,6 @@ public class Ghost extends Sprite {
         }
     }
 
-    public void setVelocity(double x, double y){
-        if (speedUp) {
-            super.setVelocity(5 * x, 5 * y);
-        } else {
-            super.setVelocity(x, y);
-        }
-    }
-
     private String getDirectionToNeighbour(Position from, Position to) {
         double fromX = from.getPositionX();
         double fromY = from.getPositionY();
@@ -254,10 +245,5 @@ public class Ghost extends Sprite {
 
     public void setEyes(boolean eyes) {
         this.eyes = eyes;
-    }
-
-    public void setSpeedUp(boolean speedUp) {
-        this.speedUp = speedUp;
-        this.setVelocity(this.velocityX, this.velocityY);
     }
 }

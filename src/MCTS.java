@@ -6,7 +6,7 @@ import java.util.Random;
 public class MCTS {
 
     public static int ROUNDS = 25;
-    public static int MAX_MOVES = 15;
+    public static int MAX_MOVES = 20;
 
     private MCTSTreeNode root;
 

@@ -124,6 +124,7 @@ public class Game extends Application {
     private Counter nodeInnovation = new Counter();
     private Counter connectionInnovation = new Counter();
     private Evaluator evaluator;
+    private NeuralNetwork neuralNetwork;
 
     private boolean ai = true; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
     private boolean training = false; // TRUE HAS THE NEURAL NETWORK TRAIN
@@ -579,24 +580,6 @@ public class Game extends Application {
         return angle;
     }
 
-//    void saveBestGenome() {
-//        try {
-//            FileWriter fileWriter = new FileWriter("bestGenome.gen");
-//            fileWriter.write("SCORE ACHEIVED: " + highestScore + "\n");
-//            for (ConnectionGene connectionGene : fittestGenome.getConnections().values()) {
-//                String geneAsString = connectionGene.getInnovation() + "|"
-//                        + connectionGene.getInNode() + "|"
-//                        + connectionGene.getOutNode() + "|"
-//                        + connectionGene.getWeight() + "|"
-//                        + connectionGene.isExpressed() + "\n";
-//                fileWriter.write(geneAsString);
-//            }
-//            fileWriter.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     private Genome loadGenome() {
         ArrayList<String> lines = new ArrayList<>();
 
@@ -634,6 +617,44 @@ public class Game extends Application {
         return genome;
     }
 
+    private void mctsStuff(){
+        if (!simulation) {
+            realState = getGameState();
+            mcts = new MCTS(realState);
+            roundsCounter = 0;
+            simulation = true;
+        }
+        if (roundsCounter <= MCTS.ROUNDS) {
+            if (mcts.notInPlayout()) {
+                mcts.selection();
+                mcts.expansion();
+                mcts.setInPlayout(true);
+                roundsCounter++;
+                movesCounter = 0;
+                for (Ghost ghost : ghosts) {
+                    adjustPosition(ghost);
+                }
+            }
+            String next = mcts.nextDirection();
+            movesCounter++;
+            if (next != null) {
+                // This is when the MCTS is still navigating the tree.
+                nextDirection = next;
+            } else if (movesCounter < MCTS.MAX_MOVES) {
+                // This is when the tree navigation is done, so the neural network is responsible for making moves.
+                getNextDirectionFromNN(neuralNetwork);
+            } else {
+                // Max moves used. Back-propagate and restore state.
+                mcts.backPropagation(score);
+                restoreFromState(realState);
+            }
+        } else {
+            simulation = false;
+            restoreFromState(realState);
+            nextDirection = mcts.evaluateTree();
+        }
+    }
+
     private void newGame() {
         guiSetup();
         gameSetup();
@@ -642,107 +663,77 @@ public class Game extends Application {
             nextDirection = "LEFT";
         }
 
-        NeuralNetwork neuralNetwork = new NeuralNetwork(loadGenome());
+        neuralNetwork = new NeuralNetwork(loadGenome());
 
-        new AnimationTimer() {
-            public void handle(long currentNanoTime) {
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() {
+                gameLoop();
+                return null;
+            }
+        };
 
-                if (ai && Position.isJunction(pacman.getPositionX(), pacman.getPositionY())) {
-                    if (!simulation) {
-                        realState = getGameState();
-                        mcts = new MCTS(realState);
-                        roundsCounter = 0;
-                        simulation = true;
-                    }
-                    if (roundsCounter <= MCTS.ROUNDS) {
-                        if (mcts.notInPlayout()) {
-                            mcts.selection();
-                            mcts.expansion();
-                            mcts.setInPlayout(true);
-                            roundsCounter++;
-                            movesCounter = 0;
-                            for (Ghost ghost : ghosts) {
-                                ghost.setSpeedUp(true);
-                                adjustPosition(ghost);
-                            }
-                        }
-                        String next = mcts.nextDirection();
-                        movesCounter++;
-                        if (next != null) {
-                            // This is when the MCTS is still navigating the tree.
-                            nextDirection = next;
-                        } else if (movesCounter < MCTS.MAX_MOVES) {
-                            // This is when the tree navigation is done, so the neural network is responsible for making moves.
-                            getNextDirectionFromNN(neuralNetwork);
-                        } else {
-                            // Max moves used. Back-propagate and restore state.
+        // Run task in new thread
+        new Thread(task).start();
+    }
+
+    private void gameLoop() {
+        boolean endGame = false;
+        while (!endGame) {
+            if (ai && Position.isJunction(pacman.getPositionX(), pacman.getPositionY())) {
+                mctsStuff();
+            }
+
+            updatePacman();
+
+            eatPills();
+
+            eatenCoolDown += 1;
+
+            if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
+                Platform.runLater(() -> gameOver(true));
+                break;
+            }
+
+            updateGhostsWrapper();
+
+            if (!simulation) {
+                Platform.runLater(this::updateScreen);
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            for (Ghost ghost : ghosts) {
+                if (ghost.canCatch(pacman)) {
+                    if (ghost.isSpooked()) {
+                        ghostEaten(ghost);
+                    } else if (!ghost.isEyes()) {
+                        if (simulation) {
                             mcts.backPropagation(score);
                             restoreFromState(realState);
-                        }
-                    } else {
-                        simulation = false;
-                        restoreFromState(realState);
-                        for (Ghost ghost : ghosts) {
-                            ghost.setSpeedUp(false);
-                        }
-                        nextDirection = mcts.evaluateTree();
-                    }
-                }
-
-                updatePacman();
-
-                eatPills();
-
-                if (simulation) {
-                    eatenCoolDown += 5;
-                } else {
-                    eatenCoolDown += 1;
-                }
-
-                if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
-                    gameOver(true);
-                    this.stop();
-                }
-
-                updateGhostsWrapper();
-
-//                if (!simulation) {
-                    updateScreen();
-//                }
-
-                for (Ghost ghost : ghosts) {
-                    if (ghost.canCatch(pacman)) {
-                        if (ghost.isSpooked()) {
-                            ghostEaten(ghost);
-                        } else if (!ghost.isEyes()) {
-                            if (simulation) {
-                                mcts.backPropagation(score);
-                                restoreFromState(realState);
-                                break;
-                            } else if (lives > 0) {
-                                lostLife();
-                                break;
-                            } else {
-                                gameOver(false);
-                                this.stop();
-                            }
+                            break;
+                        } else if (lives > 0) {
+                            lostLife();
+                            break;
+                        } else {
+                            endGame = true;
+                            Platform.runLater(() -> gameOver(false));
+                            break;
                         }
                     }
                 }
             }
-        }.start();
+        }
     }
 
     private void updatePacman() {
         boolean canTurn = true;
         boolean alreadyMoved = false;
 
-        int SPEED;
-        if (simulation) {
-            SPEED = 10;
-        } else {
-            SPEED = 2;
-        }
+        int SPEED = 2;
 
         switch (nextDirection) {
             case "UP":
@@ -974,17 +965,11 @@ public class Game extends Application {
     private void adjustPosition(Ghost ghost) {
         double ghostX = ghost.getPositionX();
         double ghostY = ghost.getPositionY();
-        if (simulation) {
-            double offsetX = (ghostX - 7) % 10;
-            double offsetY = (ghostY - 7) % 10;
-            ghost.positionX -= offsetX;
-            ghost.positionY -= offsetY;
-        } else {
-            if (ghostX % 2 == 0) {
-                ghost.positionX += 1;
-            } else if (ghostY % 2 == 0) {
-                ghost.positionY += 1;
-            }
+
+        if (ghostX % 2 == 0) {
+            ghost.positionX += 1;
+        } else if (ghostY % 2 == 0) {
+            ghost.positionY += 1;
         }
     }
 
@@ -1016,11 +1001,7 @@ public class Game extends Application {
         }
 
         if (scaredCounter >= 0) {
-            if (simulation) {
-                scaredCounter += 5;
-            } else {
-                scaredCounter += 1;
-            }
+            scaredCounter += 1;
             if (scaredCounter > 500) {
                 scaredGhosts(false);
                 updateGhosts(null);
