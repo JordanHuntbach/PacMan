@@ -12,8 +12,8 @@ public abstract class Evaluator {
 
     private float c1 = 1.0f;
     private float c2 = 1.0f;
-    private float c3 = 0.4f;
-    private float d = 5.0f;
+    private float c3 = 0.35f;
+    private float d = 6.0f;
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.1f;
     private float ADD_NODE_RATE = 0.1f;
@@ -61,6 +61,7 @@ public abstract class Evaluator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("DONE");
     }
 
     void initialMutate() {
@@ -125,7 +126,7 @@ public abstract class Evaluator {
         }
         System.out.println("");
 
-        if (stagnation > 30) {
+        if (stagnation > 30 || speciesList.size() == populationSize) {
             System.out.println("Stagnant population. Killing off all but 20 genomes.");
 
             genomes.sort(new FitnessComparator());

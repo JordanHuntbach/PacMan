@@ -4,8 +4,8 @@ Notes:
 
 Things that need doing:
     Fix the random ghost behaviour.
-    Add inputs for the valid directions, and maybe current position.
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.
+    Adding a positive reward for exploration / survival.
     Change the stagnation protocol to entire species altogether if they're not improving.

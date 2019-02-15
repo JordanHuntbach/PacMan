@@ -1,10 +1,16 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -14,7 +20,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.animation.AnimationTimer;
+import sun.tools.jstat.Alignment;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -27,6 +33,7 @@ import static java.lang.Thread.sleep;
 
 public class Game extends Application {
 
+    // This data structure represents the level.
     /**
     Codes:
     1 = Pill
@@ -38,7 +45,6 @@ public class Game extends Application {
     7 = Corner (Top <-> Left)
     8 = Corner (Bottom <-> Left)
     */
-
     private int[][] level = new int[][]{
             {6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
@@ -73,18 +79,22 @@ public class Game extends Application {
             {5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 7}
     };
 
+    // Lists of pills and walls (for rendering).
     private ArrayList<Sprite> pillsList;
     private ArrayList<Sprite> powerPillsList;
     private ArrayList<Sprite> wallsList;
 
+    // The number of ghosts eaten since a power pellet was last consumed.
     private int ghostsEaten;
 
+    // GUI Stuff
     private Group root;
     private Scene scene;
     private Stage mainStage;
     private Canvas canvas;
     private GraphicsContext gc;
 
+    // Pac-Man and Ghosts
     private Sprite pacman;
     private ArrayList<Ghost> ghosts;
     private Ghost blinky;
@@ -92,48 +102,58 @@ public class Game extends Application {
     private Ghost inky;
     private Ghost clyde;
 
+    // Player speed.
+    int SPEED = 2;
+
+    // Sprites that mark Pac-Man's position and the ghosts' targets.
+    private boolean debug = false;
     private Sprite previousMarker;
     private Sprite nextMarker;
-
     private Sprite blinkyMarker;
     private Sprite pinkyMarker;
     private Sprite inkyMarker;
     private Sprite clydeMarker;
 
+    // Score and life counters.
     private int score = 0;
     private int lives = 2;
+
+    // Timers for when the ghosts get released.
     private int pinkyCounter = 0;
     private int inkyCounter = 0;
     private int clydeCounter = 0;
     private int eatenCoolDown = 0;
-
     private int scaredCounter = -1;
 
+    // Fields used in Pac-Man's movement.
     private String currentDirection;
     private String nextDirection;
-
     private int mouthPause = 0;
     private boolean mouthOpen = true;
 
+    // Fields used for tracking the MCTS state.
     private boolean simulation = false;
     private State realState;
     private MCTS mcts;
     private int roundsCounter;
     private int movesCounter;
 
+    // Innovation counters for NEAT.
     private Counter nodeInnovation = new Counter();
     private Counter connectionInnovation = new Counter();
+
+    // Neural network stuff.
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
+    private int populationSize = 100;
+    private int generations = 200;
+    private float [] inputs = new float[32];
+    private float [] nnOutputs = new float[4];
 
-    private boolean ai = true; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
+    // Game settings.
+    private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
     private boolean training = false; // TRUE HAS THE NEURAL NETWORK TRAIN
     private boolean trainWithGUI = false;
-    private int populationSize = 100;
-    private boolean debug = false;
-
-    private float [] inputs = new float[26];
-    private float [] nnOutputs = new float[4];
 
     public static void main(String[] args) {
         launch(args);
@@ -141,35 +161,116 @@ public class Game extends Application {
 
     @Override
     public void start(Stage stage) {
+        Font.loadFont(getClass().getResourceAsStream("Styling/PacFont.ttf"), 16);
         mainStage = stage;
         mainStage.setTitle("Pac-Man");
-
-        if (training) {
-            if (trainWithGUI) {
-                guiSetup();
-            }
-            setUpNN();
-        } else {
-            newGame();
-        }
+        menu();
     }
 
+    // Display menu screen.
+    private void menu() {
+        VBox vBox = new VBox();
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setSpacing(10);
+        vBox.setPadding(new Insets(25));
+
+        Text sceneTitle = new Text("Pac-Man");
+        sceneTitle.getStyleClass().add("title");
+        vBox.getChildren().add(sceneTitle);
+
+        Image image = new Image("Styling/menu.png", true);
+        ImageView imageView = new ImageView(image);
+        vBox.setMargin(imageView, new Insets(100, 0, 50, 0));
+        vBox.getChildren().add(imageView);
+
+        ToggleGroup group = new ToggleGroup();
+        RadioButton humanPlayer = new RadioButton("Human Player");
+        humanPlayer.setToggleGroup(group);
+        humanPlayer.setSelected(true);
+        humanPlayer.setOnAction(event -> ai = false);
+        RadioButton aiPlayer = new RadioButton("AI Player");
+        aiPlayer.setToggleGroup(group);
+        aiPlayer.setOnAction(event -> {ai = true; training = false;});
+        RadioButton trainNeuralNetwork = new RadioButton("Train Neural Network");
+        trainNeuralNetwork.setToggleGroup(group);
+        trainNeuralNetwork.setOnAction(event -> {ai = true; training = true;});
+
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(humanPlayer, aiPlayer, trainNeuralNetwork);
+        hBox.setSpacing(10);
+        hBox.setPadding(new Insets(15, 12, 15, 12));
+        hBox.setAlignment(Pos.CENTER);
+        vBox.getChildren().add(hBox);
+
+        Button newGameButton = new Button();
+        newGameButton.setOnAction(event -> {
+            // Either train the neural network, or play a game.
+            if (training) {
+                if (trainWithGUI) {
+                    guiSetup();
+                } else {
+                    // nn gui setup
+                }
+                setUpNN();
+            } else {
+                newGame();
+            }
+        });
+        setButtonText(newGameButton, "start game");
+
+        Button optionsButton = new Button();
+        setButtonText(optionsButton, "options");
+
+        Button exitButton = new Button();
+        exitButton.setOnAction(event -> Platform.exit());
+        setButtonText(exitButton, "quit");
+
+        vBox.getChildren().addAll(newGameButton, optionsButton, exitButton);
+
+        Text text = new Text();
+        text.setText("Created by Jordan Huntbach for a dissertation on 'Machine Learning for Pac-Man'\n2019");
+        text.getStyleClass().add("info");
+        vBox.setMargin(text, new Insets(50, 0, 0, 0));
+
+        vBox.getChildren().add(text);
+
+        scene = new Scene(vBox, 592,720, Color.BLACK);
+        scene.getStylesheets().add("Styling/style.css");
+        mainStage.setScene(scene);
+        mainStage.show();
+    }
+
+    private void setButtonText(Button button, String text){
+        button.textProperty().bind(
+                Bindings.when(button.hoverProperty())
+                        .then(text.toLowerCase())
+                        .otherwise(text.toUpperCase()));
+    }
+
+    // Initialise NEAT.
     private void setUpNN() {
         evaluator = new Evaluator(populationSize, newGenome(), nodeInnovation, connectionInnovation) {
             @Override
             float evaluateGenome(Genome genome, int generation, int member, float highestScore) {
-                return playGame(genome, generation, member, highestScore);
+                return trainOnGame(genome, generation, member, highestScore);
             }
         };
+
+        // Mutate the starting genomes a little, for some initial variation.
         evaluator.initialMutate();
         evaluator.initialMutate();
 
+        // Create a task which can be run in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() {
-                for (int i = 0; i < 100; i++) {
+
+                // Evaluate each generation
+                for (int i = 0; i < generations; i++) {
                     evaluator.evaluate();
                 }
+
+                // When done, save the best genome to a file.
                 evaluator.saveBestGenome();
                 return null;
             }
@@ -179,6 +280,7 @@ public class Game extends Application {
         new Thread(task).start();
     }
 
+    // Create a minimal genome to initialise the NEAT algorithm.
     private Genome newGenome() {
         /* Inputs are:
            Distance / direction to each ghost
@@ -186,6 +288,8 @@ public class Game extends Application {
            Is ghost moving towards Pac-Man
            Direction / distance to closest pill
            Direction / distance to closest powerPill
+           xPosition + yPosition
+           Directions can move in
 
            Outputs are:
            Left, Right, Up, Down. Move in the direction with the greatest value.
@@ -251,6 +355,20 @@ public class Game extends Application {
         genome.addNodeGene(closestPowerPillUpOrDown, nodeInnovation);
         genome.addNodeGene(closestPowerPillLeftOrRight, nodeInnovation);
 
+        NodeGene xPosition = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene yPosition = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(xPosition, nodeInnovation);
+        genome.addNodeGene(yPosition, nodeInnovation);
+
+        NodeGene canMoveUp = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene canMoveDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene canMoveLeft = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        NodeGene canMoveRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(canMoveUp, nodeInnovation);
+        genome.addNodeGene(canMoveDown, nodeInnovation);
+        genome.addNodeGene(canMoveLeft, nodeInnovation);
+        genome.addNodeGene(canMoveRight, nodeInnovation);
+
         NodeGene up = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene down = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene left = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
@@ -277,11 +395,17 @@ public class Game extends Application {
         return genome;
     }
 
-    private float playGame(Genome genome, int genNumber, int memNumber, float highScore) {
+    // This method is called to play a game, when training the neural network.
+    private float trainOnGame(Genome genome, int genNumber, int memNumber, float highScore) {
+        // Set up the game.
         gameSetup();
 
+        // Display GUI if necessary.
         if (trainWithGUI) {
+            // Get the GUI thread to run the refreshCanvas() method.
             Platform.runLater(this::refreshCanvas);
+
+            // Pause so we can see what's going on.
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -289,24 +413,31 @@ public class Game extends Application {
             }
         }
 
+        // Create a neural network based on the genome parameter.
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
+        // Game loop - play until all points collected (or ghost hit).
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
 
+            // Evaulate the NN to get the next direction.
             getNextDirectionFromNN(neuralNetwork);
 
+            // Move Pac-Man in the desired direction.
             updatePacman();
 
-            eatenCoolDown += 1;
-
+            // Move the ghosts.
             updateGhostsWrapper();
 
+            // Eat any pills.
             eatPills();
 
+            // Update GUI if necessary.
             if (trainWithGUI) {
+                // Get the GUI thread to update the screen.
                 Platform.runLater(this::updateScreen);
                 Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 
+                // Pause so we can see what's going on.
                 try {
                     Thread.sleep(5);
                 } catch (InterruptedException e) {
@@ -314,25 +445,31 @@ public class Game extends Application {
                 }
             }
 
+            // Handle ghost collisions.
             for (Ghost ghost : ghosts) {
                 if (ghost.canCatch(pacman)) {
                     if (ghost.isSpooked()) {
-                        ghostEaten(ghost);
+                        ghostEaten(ghost);  // Pac-Man eats ghost.
                     } else if (!ghost.isEyes()) {
-                        return score;
+                        return score;       // Ghost eats Pac-Man.
                     }
                 }
             }
         }
 
+        // Return the score to the evaluator.
         return score;
     }
 
+    // This method passes the inputs to a given NN, and sets nextDirection if appropriate.
     private void getNextDirectionFromNN(NeuralNetwork neuralNetwork){
+        // Calculate inputs.
         getInputs(inputs);
+        // Calculate outputs.
         nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
 
         if (nnOutputs != null) {
+            // Get the highest value.
             float maximum = Float.MIN_VALUE;
             int direction = -1;
             for (int i = 0; i < nnOutputs.length; i++) {
@@ -341,6 +478,8 @@ public class Game extends Application {
                     direction = i;
                 }
             }
+
+            // Set the nextDirection.
             switch (direction) {
                 case 0:
                     nextDirection = "UP";
@@ -360,9 +499,10 @@ public class Game extends Application {
         }
     }
 
+    // Called at the start of the game to initialise the GUI.
     private void guiSetup() {
         root = new Group();
-        scene = new Scene(root, 592, 720);
+        scene = new Scene(root, 592, 720, Color.BLACK);
         mainStage.setScene(scene);
         mainStage.show();
 
@@ -374,12 +514,13 @@ public class Game extends Application {
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(1);
 
+        // If the game is not being controlled by AI, register the keys to change direction.
         if (!ai) {
-            scene.setOnKeyPressed(
-                    e -> nextDirection = e.getCode().toString());
+            scene.setOnKeyPressed(e -> nextDirection = e.getCode().toString());
         }
     }
 
+    // Called between games to refresh the GUI.
     private void refreshCanvas() {
         root.getChildren().remove(canvas);
         canvas = new Canvas(592,720);
@@ -394,13 +535,15 @@ public class Game extends Application {
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
+    // Called at the start of the game to initialise things.
     private void gameSetup() {
+        // Initialise Pac-Man.
         pacman = new Sprite();
         currentDirection = "";
         nextDirection = "";
-
         resetPacman();
 
+        // Initialise lists.
         pillsList = new ArrayList<>();
         powerPillsList = new ArrayList<>();
         wallsList = new ArrayList<>();
@@ -410,6 +553,7 @@ public class Game extends Application {
         int colCounter = -1;
         int COLUMNS = 28;
 
+        // Build the level, from the map.
         for (int[] row : level) {
             rowCounter += 1;
             for (int code : row) {
@@ -470,6 +614,7 @@ public class Game extends Application {
             }
         }
 
+        // Initialise ghosts.
         blinky = new Ghost("blinky");
         pinky = new Ghost("pinky");
         inky = new Ghost("inky");
@@ -480,11 +625,11 @@ public class Game extends Application {
         ghosts.add(clyde);
         resetGhosts();
 
+        // Initialise debug markers.
         previousMarker = new Sprite();
         previousMarker.setImage("Sprites/Markers/pacman.png");
         nextMarker = new Sprite();
         nextMarker.setImage("Sprites/Markers/pacman.png");
-
         blinkyMarker = new Sprite();
         blinkyMarker.setImage("Sprites/Markers/blinky.png");
         pinkyMarker = new Sprite();
@@ -494,6 +639,7 @@ public class Game extends Application {
         clydeMarker = new Sprite();
         clydeMarker.setImage("Sprites/Markers/clyde.png");
 
+        // Initialise counters.
         score = 0;
         lives = 2;
         pinkyCounter = 0;
@@ -502,18 +648,16 @@ public class Game extends Application {
         ghostsEaten = 0;
     }
 
+    // Fills the input array with the relevant values.
     private void getInputs(float[] inputs) {
+        // Pointer to current position in the input array.
         int access = 0;
 
-        // Current position.
-
-        // Can turn left/right/up/down.
-
         for (Ghost ghost : ghosts) {
-            inputs[access++] = ghost.isActive() ? 1 : -1;
-            inputDistanceAndDirection(ghost, inputs, access);
+            inputs[access++] = ghost.isActive() ? 1 : -1;       // Is ghost active.
+            inputDistanceAndDirection(ghost, inputs, access);   // Distance and direction to ghost.
             access += 3;
-            inputs[access++] = ghost.isSpooked() ? 1 : -1;
+            inputs[access++] = ghost.isSpooked() ? 1 : -1;      // Is ghost edible.
         }
 
         // Distance + direction to closest pill.
@@ -524,8 +668,73 @@ public class Game extends Application {
         // Distance + direction to closest powerPill.
         Sprite powerPill = closestPill(pillsList);
         inputDistanceAndDirection(powerPill, inputs, access);
+        access += 3;
+
+        // Current position
+        inputs[access++] = 1f - ((float) pacman.getPositionX() - 27) / 250f;
+        inputs[access++] = 1f - ((float) pacman.getPositionY() - 27) / 280f;
+
+        // Valid moves
+        inputs[access++] = canMove("UP") ? 1 : -1;
+        inputs[access++] = canMove("DOWN") ? 1 : -1;
+        inputs[access++] = canMove("LEFT") ? 1 : -1;
+        inputs[access] = canMove("RIGHT") ? 1 : -1;
+
     }
 
+    // Returns whether Pac-Man can move in a specified direction.
+    private boolean canMove(String direction) {
+        switch (direction) {
+            case "UP":
+                pacman.setVelocity(0, -SPEED);
+                pacman.update();
+                for (Sprite wall : wallsList) {
+                    if (wall.intersects(pacman)) {
+                        pacman.undo();
+                        return false;
+                    }
+                }
+                pacman.undo();
+                return true;
+            case "DOWN":
+                pacman.setVelocity(0, SPEED);
+                pacman.update();
+                for (Sprite wall : wallsList) {
+                    if (wall.intersects(pacman)) {
+                        pacman.undo();
+                        return false;
+                    }
+                }
+                pacman.undo();
+                return true;
+            case "LEFT":
+                pacman.setVelocity(-SPEED, 0);
+                pacman.update();
+                for (Sprite wall : wallsList) {
+                    if (wall.intersects(pacman)) {
+                        pacman.undo();
+                        return false;
+                    }
+                }
+                pacman.undo();
+                return true;
+            case "RIGHT":
+                pacman.setVelocity(SPEED, 0);
+                pacman.update();
+                for (Sprite wall : wallsList) {
+                    if (wall.intersects(pacman)) {
+                        pacman.undo();
+                        return false;
+                    }
+                }
+                pacman.undo();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // Calculates the distance and direction from Pac-Man to a Sprite, and puts the results in the inputs array.
     private void inputDistanceAndDirection(Sprite sprite, float[] inputs, int access) {
         if (sprite == null) {
             inputs[access++] = 0;
@@ -545,6 +754,7 @@ public class Game extends Application {
         }
     }
 
+    // Returns the closest Sprite to Pac-Man from a given list.
     private Sprite closestPill(List<Sprite> pills) {
         float minDistance = Float.MAX_VALUE;
         Sprite closest = null;
@@ -560,6 +770,7 @@ public class Game extends Application {
         return closest;
     }
 
+    // Calculates the distance to a given Sprite from Pac-Man.
     private float distanceToSprite(Sprite sprite) {
         float dx = (float) Math.abs(pacman.getPositionX() - sprite.getPositionX());
         float dy = (float) Math.abs(pacman.getPositionY() - sprite.getPositionY());
@@ -570,6 +781,7 @@ public class Game extends Application {
         return distance;
     }
 
+    // Calculates the direction to a given Sprite from Pac-Man.
     private double directionToSprite(Sprite sprite) {
         double x = (sprite.getPositionX() - pacman.getPositionX()); // +ve if sprite to the right
         double y = (pacman.getPositionY() - sprite.getPositionY()); // +ve if sprite above
@@ -580,9 +792,10 @@ public class Game extends Application {
         return angle;
     }
 
+    // Returns the genome stored in bestGenome.gen.
     private Genome loadGenome() {
+        // Read each line from the file into an ArrayList.
         ArrayList<String> lines = new ArrayList<>();
-
         try {
             BufferedReader reader = new BufferedReader(new FileReader("bestGenome.gen"));
             String line;
@@ -595,9 +808,13 @@ public class Game extends Application {
             e.printStackTrace();
         }
 
+        // Initialise a list of connectionGenes.
         List<ConnectionGene> connectionGenes = new ArrayList<>();
 
+        // Delete the first line (just contains the score).
         lines.remove(0);
+
+        // For every connection gene listed in the file, add it to a list.
         for (String line : lines) {
             String[] things = line.split("\\|");
             int innovation = Integer.valueOf(things[0]);
@@ -610,13 +827,14 @@ public class Game extends Application {
             connectionGenes.add(connectionGene);
         }
 
+        // Create a new genome, and give it the connections read from the file.
         Genome genome = newGenome();
-
         genome.overwriteConnections(connectionGenes);
 
         return genome;
     }
 
+    // This function handles the MCTS, and is called every game loop.
     private void mctsStuff(){
         if (!simulation) {
             realState = getGameState();
@@ -655,16 +873,21 @@ public class Game extends Application {
         }
     }
 
+    // This function allows a game to be played, outside of training the NN.
     private void newGame() {
+        // Setup the GUI and Game.
         guiSetup();
         gameSetup();
 
+        // Kick-start the AI.
         if (ai) {
             nextDirection = "LEFT";
         }
 
+        // Create a NN from the best genome found.
         neuralNetwork = new NeuralNetwork(loadGenome());
 
+        // Start the game in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() {
@@ -672,31 +895,36 @@ public class Game extends Application {
                 return null;
             }
         };
-
-        // Run task in new thread
         new Thread(task).start();
     }
 
+    // The main game loop!
     private void gameLoop() {
+
+        // While the game is not over..
         boolean endGame = false;
         while (!endGame) {
+            // If the AI is controlling Pac-Man and has reached a junction, make a decision.
             if (ai && Position.isJunction(pacman.getPositionX(), pacman.getPositionY())) {
                 mctsStuff();
             }
 
+            // Move Pac-Man.
             updatePacman();
 
+            // Eat pills.
             eatPills();
 
-            eatenCoolDown += 1;
-
+            // If all pills eaten, end the loop and display a 'congrats' message.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
                 Platform.runLater(() -> gameOver(true));
                 break;
             }
 
+            // Update each ghost.
             updateGhostsWrapper();
 
+            // If we aren't in a MCTS simulation / play-out, update the screen.
             if (!simulation) {
                 Platform.runLater(this::updateScreen);
                 try {
@@ -706,16 +934,17 @@ public class Game extends Application {
                 }
             }
 
+            // Handle the ghost collisions.
             for (Ghost ghost : ghosts) {
                 if (ghost.canCatch(pacman)) {
                     if (ghost.isSpooked()) {
-                        ghostEaten(ghost);
+                        ghostEaten(ghost);                  // Pac-Man eats ghost.
                     } else if (!ghost.isEyes()) {
                         if (simulation) {
-                            mcts.backPropagation(score);
-                            restoreFromState(realState);
+                            mcts.backPropagation(score);    // Ghost eats Pac-Man, ending MCTS play-out.
+                            restoreFromState(realState);    // Restore state to beginning of play-out.
                             break;
-                        } else if (lives > 0) {
+                        } else if (lives > 0) {             // Ghost eats Pac-Man outside of MCTS
                             lostLife();
                             break;
                         } else {
@@ -729,140 +958,85 @@ public class Game extends Application {
         }
     }
 
+    // Moves Pac-Man
     private void updatePacman() {
-        boolean canTurn = true;
-        boolean alreadyMoved = false;
-
-        int SPEED = 2;
-
-        switch (nextDirection) {
-            case "UP":
-                pacman.setVelocity(0, -SPEED);
-                pacman.update();
-                for (Sprite wall : wallsList) {
-                    if (wall.intersects(pacman)) {
-                        pacman.undo();
-                        canTurn = false;
-                        break;
-                    }
-                }
-                if (canTurn) {
-                    alreadyMoved = true;
-                    currentDirection = nextDirection;
-                    nextDirection = "";
+        // Change direction if possible.
+        boolean canTurn = canMove(nextDirection);
+        if (canTurn) {
+            currentDirection = nextDirection;
+            nextDirection = "";
+            switch (currentDirection) {
+                case "UP":
                     if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanU.png");
                     }
-                }
-                break;
-            case "DOWN":
-                pacman.setVelocity(0, SPEED);
-                pacman.update();
-                for (Sprite wall : wallsList) {
-                    if (wall.intersects(pacman)) {
-                        pacman.undo();
-                        canTurn = false;
-                        break;
-                    }
-                }
-                if (canTurn) {
-                    alreadyMoved = true;
-                    currentDirection = nextDirection;
-                    nextDirection = "";
+                    break;
+                case "DOWN":
                     if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanD.png");
                     }
-                }
-                break;
-            case "LEFT":
-                pacman.setVelocity(-SPEED, 0);
-                pacman.update();
-                for (Sprite wall : wallsList) {
-                    if (wall.intersects(pacman)) {
-                        pacman.undo();
-                        canTurn = false;
-                        break;
-                    }
-                }
-                if (canTurn) {
-                    alreadyMoved = true;
-                    currentDirection = nextDirection;
-                    nextDirection = "";
+                    break;
+                case "LEFT":
                     if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanL.png");
                     }
-                }
-                break;
-            case "RIGHT":
-                pacman.setVelocity(SPEED, 0);
-                pacman.update();
-                for (Sprite wall : wallsList) {
-                    if (wall.intersects(pacman)) {
-                        pacman.undo();
-                        canTurn = false;
-                        break;
-                    }
-                }
-                if (canTurn) {
-                    alreadyMoved = true;
-                    currentDirection = nextDirection;
-                    nextDirection = "";
+                    break;
+                case "RIGHT":
                     if (mouthOpen) {
                         pacman.setImage("Sprites/Pac-Man/pacmanR.png");
                     }
-                }
+                    break;
+            }
+        }
+
+        // Move Pac-Man.
+        switch (currentDirection) {
+            case "UP":
+                pacman.setVelocity(0, -SPEED);
+                break;
+            case "DOWN":
+                pacman.setVelocity(0, SPEED);
+                break;
+            case "LEFT":
+                pacman.setVelocity(-SPEED, 0);
+                break;
+            case "RIGHT":
+                pacman.setVelocity(SPEED, 0);
                 break;
         }
+        pacman.update();
 
-        mouthPause += 1;
-
-        if (!alreadyMoved){
-            switch (currentDirection) {
-                case "UP":
-                    pacman.setVelocity(0, -SPEED);
-                    break;
-                case "DOWN":
-                    pacman.setVelocity(0, SPEED);
-                    break;
-                case "LEFT":
-                    pacman.setVelocity(-SPEED, 0);
-                    break;
-                case "RIGHT":
-                    pacman.setVelocity(SPEED, 0);
-                    break;
-            }
-            pacman.update();
-
-            boolean moved = true;
-
-            // Collision detection
-            for (Sprite wall : wallsList) {
-                if (wall.intersects(pacman)) {
-                    pacman.undo();
-                    moved = false;
-                    break;
-                }
-            }
-
-            if (moved && mouthPause > 5) {
-                mouthPause = 0;
-                if (mouthOpen) {
-                    mouthOpen = false;
-                    pacman.setImage("Sprites/Pac-Man/pacman.png");
-                } else {
-                    mouthOpen = true;
-                    pacman.setImage("Sprites/Pac-Man/pacman" + currentDirection.substring(0, 1) + ".png");
-                }
+        // Undo move if Pac-Man hit a wall.
+        boolean moved = true;
+        for (Sprite wall : wallsList) {
+            if (wall.intersects(pacman)) {
+                pacman.undo();
+                moved = false;
+                break;
             }
         }
 
-        // Teleporter
+        // Handles mouth opening/closing.
+        mouthPause += 1;
+        if (moved && mouthPause > 5) {
+            mouthPause = 0;
+            if (mouthOpen) {
+                mouthOpen = false;
+                pacman.setImage("Sprites/Pac-Man/pacman.png");
+            } else {
+                mouthOpen = true;
+                pacman.setImage("Sprites/Pac-Man/pacman" + currentDirection.substring(0, 1) + ".png");
+            }
+        }
+
+        // Teleporter tunnel.
         if (pacman.getPositionX() <= -15) {
             pacman.setPosition(567, 287);
         } else if (pacman.getPositionX() >= 570) {
             pacman.setPosition(-13, 287);
         }
 
+        // Update debug marker.
         Position pMarkerPos = Position.getNearestPosition(pacman.positionX, pacman.positionY);
         previousMarker.setPosition(6 + pMarkerPos.getPositionX(), 6 + pMarkerPos.getPositionY());
     }
@@ -909,6 +1083,7 @@ public class Game extends Application {
         } else if (clyde.isActive() && clydeCounter == 60) {
             clyde.setActive();
         }
+        eatenCoolDown += 1;
     }
 
     private void updateScreen() {
@@ -989,7 +1164,7 @@ public class Game extends Application {
     }
 
     private void updateGhostsWrapper() {
-        if (eatenCoolDown == 240) {
+        if (eatenCoolDown >= 240) {
             eatenCoolDown = 0;
             if (!pinky.isActive()) {
                 pinky.setActive();
@@ -1152,11 +1327,10 @@ public class Game extends Application {
     }
 
     private void gameOver(boolean won) {
-        GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(25, 25, 25, 25));
+        VBox vBox = new VBox();
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setSpacing(10);
+        vBox.setPadding(new Insets(25, 25, 25, 25));
 
         Text sceneTitle;
         if (won) {
@@ -1164,27 +1338,27 @@ public class Game extends Application {
         } else {
             sceneTitle = new Text("Game Over");
         }
-        sceneTitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(sceneTitle, 0, 0);
+        sceneTitle.getStyleClass().add("gameOver");
 
         Text scoreText = new Text("Final Score: " + score);
-        scoreText.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scoreText, 0, 1);
+        scoreText.getStyleClass().add("gameOver");
 
         Button newGameButton = new Button();
-        newGameButton.setText("New Game");
+        setButtonText(newGameButton, "New Game");
         newGameButton.setOnAction(event -> newGame());
-        grid.add(newGameButton, 0, 2);
 
         Button exitButton = new Button();
-        exitButton.setText("Quit");
-        exitButton.setOnAction(event -> Platform.exit());
-        grid.add(exitButton, 0, 3);
+        setButtonText(exitButton, "Return to Menu");
+        exitButton.setOnAction(event -> menu());
 
-        scene = new Scene(grid, 592,720);
+        vBox.getChildren().addAll(sceneTitle, scoreText, newGameButton, exitButton);
+
+        scene = new Scene(vBox, 592,720, Color.BLACK);
+        scene.getStylesheets().add("Styling/style.css");
         mainStage.setScene(scene);
     }
 
+    // Called when a ghost is eaten.
     private void ghostEaten(Ghost ghost) {
         ghost.setScared(false);
         ghost.setEyes(true);
@@ -1195,6 +1369,7 @@ public class Game extends Application {
         ghostsEaten += 1;
     }
 
+    // The following methods are all used to save / load a game state.
     private State getGameState() {
         return new State(this);
     }
