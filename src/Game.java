@@ -148,15 +148,14 @@ public class Game extends Application {
     // Neural network stuff.
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
-    private int populationSize = 100;
-    private int generations = 200;
+    private int populationSize = 10;
+    private int generations = 1;
     private float [] inputs = new float[32];
-    private float [] nnOutputs = new float[4];
 
     // Game settings.
     private boolean ai = false;
     private boolean training = false;
-    private boolean trainWithGUI = false;
+    private boolean trainWithGUI = true;
     private boolean useMCTS = true;
     private boolean useNN = true;
 
@@ -356,8 +355,11 @@ public class Game extends Application {
                     evaluator.evaluate();
                 }
 
+                System.out.println("Training finished, saving best genome to file.");
+
                 // When done, save the best genome to a file.
                 evaluator.saveBestGenome();
+
                 return null;
             }
         };
@@ -502,8 +504,15 @@ public class Game extends Application {
         // Create a neural network based on the genome parameter.
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
+        int frameCounter = 0;
+
         // Game loop - play until all points collected (or ghost hit).
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
+            int previousScore = score;
+
+            if (frameCounter > 400) {
+                return score;
+            }
 
             // Evaulate the NN to get the next direction.
             getNextDirectionFromNN(neuralNetwork);
@@ -511,11 +520,23 @@ public class Game extends Application {
             // Move Pac-Man in the desired direction.
             updatePacman();
 
-            // Move the ghosts.
-            updateGhostsWrapper();
+            if (useGhosts) {
+                // Move the ghosts.
+                updateGhostsWrapper();
+            }
 
             // Eat any pills.
             eatPills();
+
+            if (!useGhosts) {
+                if (previousScore == score) {
+                    // Update counter if we haven't eaten.
+                    frameCounter++;
+                } else {
+                    // Reset counter if we have eaten.
+                    frameCounter = 0;
+                }
+            }
 
             // Update GUI if necessary.
             if (trainWithGUI) {
@@ -552,7 +573,7 @@ public class Game extends Application {
         // Calculate inputs.
         getInputs(inputs);
         // Calculate outputs.
-        nnOutputs = neuralNetwork.calculate(inputs); // 0=UP, 1=DOWN, 2=LEFT, 3=RIGHT
+        float[] nnOutputs = neuralNetwork.calculate(inputs);
 
         if (nnOutputs != null) {
             // Get the highest value.
@@ -745,21 +766,22 @@ public class Game extends Application {
         // Pointer to current position in the input array.
         int access = 0;
 
-        for (Ghost ghost : ghosts) {
-            inputs[access++] = ghost.isActive() ? 1 : -1;       // Is ghost active.
-            inputDistanceAndDirection(ghost, inputs, access);   // Distance and direction to ghost.
-            access += 3;
-            inputs[access++] = ghost.isSpooked() ? 1 : -1;      // Is ghost edible.
+        if (useGhosts) {
+            for (Ghost ghost : ghosts) {
+                inputs[access++] = ghost.isActive() ? 1 : -1;       // Is ghost active.
+                inputDistanceAndDirection(ghost, inputs, access);   // Distance and direction to ghost.
+                access += 3;
+                inputs[access++] = ghost.isSpooked() ? 1 : -1;      // Is ghost edible.
+            }
+        } else {
+            for (int i = 0; i < 20; i++) { // 4 ghosts x 5 inputs
+                inputs[access++] = 0;
+            }
         }
 
-        // Distance + direction to closest pill.
-        Sprite pill = closestPill(pillsList);
-        inputDistanceAndDirection(pill, inputs, access);
+        handleDotInputs(useDots, pillsList, access, inputs);
         access += 3;
-
-        // Distance + direction to closest powerPill.
-        Sprite powerPill = closestPill(pillsList);
-        inputDistanceAndDirection(powerPill, inputs, access);
+        handleDotInputs(useEnergizers, powerPillsList, access, inputs);
         access += 3;
 
         // Current position
@@ -771,7 +793,18 @@ public class Game extends Application {
         inputs[access++] = canMove("DOWN") ? 1 : -1;
         inputs[access++] = canMove("LEFT") ? 1 : -1;
         inputs[access] = canMove("RIGHT") ? 1 : -1;
+    }
 
+    private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs) {
+        if (useDotType) {
+            // Distance + direction to closest pill.
+            Sprite pill = closestPill(dotTypeList);
+            inputDistanceAndDirection(pill, inputs, access);
+        } else {
+            for (int i = 0; i < 3; i++) {
+                inputs[access++] = 0;
+            }
+        }
     }
 
     // Returns whether Pac-Man can move in a specified direction.
@@ -886,10 +919,12 @@ public class Game extends Application {
 
     // Returns the genome stored in bestGenome.gen.
     private Genome loadGenome() {
+        String file = "bestGenome.gen";
+
         // Read each line from the file into an ArrayList.
         ArrayList<String> lines = new ArrayList<>();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("bestGenome.gen"));
+            BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
             while ((line = reader.readLine()) != null)
             {
@@ -897,7 +932,8 @@ public class Game extends Application {
             }
             reader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Genome " + file + " failed to load.");
+            return null;
         }
 
         // Initialise a list of connectionGenes.
@@ -927,7 +963,7 @@ public class Game extends Application {
     }
 
     // This function handles the MCTS, and is called every game loop.
-    private void mctsStuff(){
+    private void mctsStuff() {
         if (!simulation) {
             realState = getGameState();
             mcts = new MCTS(realState);
@@ -952,7 +988,11 @@ public class Game extends Application {
                 nextDirection = next;
             } else if (movesCounter < MCTS.MAX_MOVES) {
                 // This is when the tree navigation is done, so the neural network is responsible for making moves.
-                getNextDirectionFromNN(neuralNetwork);
+                if (useNN) {
+                    getNextDirectionFromNN(neuralNetwork);
+                } else {
+                    nextDirection = PacManController.getNextDirection(pacman);
+                }
             } else {
                 // Max moves used. Back-propagate and restore state.
                 mcts.backPropagation(score);
@@ -977,7 +1017,10 @@ public class Game extends Application {
         }
 
         // Create a NN from the best genome found.
-        neuralNetwork = new NeuralNetwork(loadGenome());
+        Genome genome = loadGenome();
+        if (genome != null) {
+            neuralNetwork = new NeuralNetwork(genome);
+        }
 
         // Start the game in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<Void>() {
@@ -996,9 +1039,14 @@ public class Game extends Application {
         // While the game is not over..
         boolean endGame = false;
         while (!endGame) {
-            // If the AI is controlling Pac-Man and has reached a junction, make a decision.
-            if (ai && Position.isJunction(pacman.getPositionX(), pacman.getPositionY())) {
-                mctsStuff();
+            if (ai) {
+                if (useMCTS) {
+                    if (Position.isJunction(pacman.getPositionX(), pacman.getPositionY())) {
+                        mctsStuff();
+                    }
+                } else {
+                    getNextDirectionFromNN(neuralNetwork);
+                }
             }
 
             // Move Pac-Man.

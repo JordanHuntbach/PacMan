@@ -23,6 +23,25 @@ public class Position {
         return "[" + positionX + "," + positionY + "]";
     }
 
+    // Overriding equals() to compare two Complex objects
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof Position)) {
+            return false;
+        }
+
+        // typecast o to Complex so that we can compare data members
+        Position p = (Position) o;
+
+        // Compare the data members and return accordingly
+        return Double.compare(positionX, p.positionX) == 0 && Double.compare(positionY, p.positionY) == 0;
+    }
+
     // Some code
 
     static HashMap<Position, Integer> junctions = new HashMap<Position, Integer>() {{

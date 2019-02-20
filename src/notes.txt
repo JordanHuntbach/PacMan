@@ -1,11 +1,21 @@
-Notes:
-    After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Try 5 next.
-    Managed to get a high score of 2810 after 100 generations.
-
 Things that need doing:
     Fix the random ghost behaviour.
+    After training, do something with the GUI.
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.
     Adding a positive reward for exploration / survival.
     Change the stagnation protocol to entire species altogether if they're not improving.
+    Incremental learning.
+
+
+
+Go over all the MCTS code, and PAY ATTENTION. I'm convinced there is a bug, or else Pac-Man is suicidal.
+There's a problem with the ghosts eating Pac-Man. I believe that when they do so and we aren't in a playout (still just
+moving according to the tree structure), we don't backpropagate correctly. We don't update the tree to reflect that a
+branch results in death.
+
+Notes:
+    After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Try 5 next.
+    Managed to get a high score of 2810 after 100 generations.
+
