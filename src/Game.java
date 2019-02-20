@@ -1,6 +1,8 @@
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -93,6 +95,7 @@ public class Game extends Application {
     private Stage mainStage;
     private Canvas canvas;
     private GraphicsContext gc;
+    private Scene optionsScene;
 
     // Pac-Man and Ghosts
     private Sprite pacman;
@@ -151,9 +154,16 @@ public class Game extends Application {
     private float [] nnOutputs = new float[4];
 
     // Game settings.
-    private boolean ai = false; // FALSE LETS YOU CONTROL PAC-MAN, TRUE LETS AI DO IT
-    private boolean training = false; // TRUE HAS THE NEURAL NETWORK TRAIN
+    private boolean ai = false;
+    private boolean training = false;
     private boolean trainWithGUI = false;
+    private boolean useMCTS = true;
+    private boolean useNN = true;
+
+    private boolean useDots = true;
+    private boolean useEnergizers = true;
+    private boolean useGhosts = true;
+
 
     public static void main(String[] args) {
         launch(args);
@@ -164,30 +174,32 @@ public class Game extends Application {
         Font.loadFont(getClass().getResourceAsStream("Styling/PacFont.ttf"), 16);
         mainStage = stage;
         mainStage.setTitle("Pac-Man");
+        optionsScene = new Scene(optionsSetup(), 592,720, Color.BLACK);
+        optionsScene.getStylesheets().add("Styling/style.css");
         menu();
     }
 
     // Display menu screen.
     private void menu() {
-        VBox vBox = new VBox();
-        vBox.setAlignment(Pos.CENTER);
-        vBox.setSpacing(10);
-        vBox.setPadding(new Insets(25));
+        VBox mainMenu = new VBox();
+        mainMenu.setAlignment(Pos.CENTER);
+        mainMenu.setSpacing(10);
+        mainMenu.setPadding(new Insets(25));
 
-        Text sceneTitle = new Text("Pac-Man");
+        Text sceneTitle = new Text("PAC-MAN");
         sceneTitle.getStyleClass().add("title");
-        vBox.getChildren().add(sceneTitle);
+        mainMenu.getChildren().add(sceneTitle);
 
         Image image = new Image("Styling/menu.png", true);
         ImageView imageView = new ImageView(image);
-        vBox.setMargin(imageView, new Insets(100, 0, 50, 0));
-        vBox.getChildren().add(imageView);
+        mainMenu.setMargin(imageView, new Insets(100, 0, 50, 0));
+        mainMenu.getChildren().add(imageView);
 
         ToggleGroup group = new ToggleGroup();
         RadioButton humanPlayer = new RadioButton("Human Player");
         humanPlayer.setToggleGroup(group);
         humanPlayer.setSelected(true);
-        humanPlayer.setOnAction(event -> ai = false);
+        humanPlayer.setOnAction(event -> {ai = false; training = false;});
         RadioButton aiPlayer = new RadioButton("AI Player");
         aiPlayer.setToggleGroup(group);
         aiPlayer.setOnAction(event -> {ai = true; training = false;});
@@ -200,7 +212,7 @@ public class Game extends Application {
         hBox.setSpacing(10);
         hBox.setPadding(new Insets(15, 12, 15, 12));
         hBox.setAlignment(Pos.CENTER);
-        vBox.getChildren().add(hBox);
+        mainMenu.getChildren().add(hBox);
 
         Button newGameButton = new Button();
         newGameButton.setOnAction(event -> {
@@ -219,27 +231,101 @@ public class Game extends Application {
         setButtonText(newGameButton, "start game");
 
         Button optionsButton = new Button();
+        optionsButton.setOnAction(event -> mainStage.setScene(optionsScene));
         setButtonText(optionsButton, "options");
 
         Button exitButton = new Button();
         exitButton.setOnAction(event -> Platform.exit());
         setButtonText(exitButton, "quit");
 
-        vBox.getChildren().addAll(newGameButton, optionsButton, exitButton);
+        mainMenu.getChildren().addAll(newGameButton, optionsButton, exitButton);
 
         Text text = new Text();
         text.setText("Created by Jordan Huntbach for a dissertation on 'Machine Learning for Pac-Man'\n2019");
         text.getStyleClass().add("info");
-        vBox.setMargin(text, new Insets(50, 0, 0, 0));
+        mainMenu.setMargin(text, new Insets(50, 0, 0, 0));
 
-        vBox.getChildren().add(text);
+        mainMenu.getChildren().add(text);
 
-        scene = new Scene(vBox, 592,720, Color.BLACK);
+        scene = new Scene(mainMenu, 592,720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
         mainStage.setScene(scene);
         mainStage.show();
     }
 
+    // Set up options menu.
+    private VBox optionsSetup() {
+        VBox optionsMenu = new VBox();
+        optionsMenu.setAlignment(Pos.CENTER);
+        optionsMenu.setSpacing(10);
+        optionsMenu.setPadding(new Insets(25));
+
+        Text sceneTitle = new Text("OPTIONS");
+        sceneTitle.getStyleClass().add("title");
+        optionsMenu.getChildren().add(sceneTitle);
+        optionsMenu.setMargin(sceneTitle, new Insets(0, 0, 100, 0));
+
+        CheckBox mctsCheck = new CheckBox("Tree Search");
+        CheckBox networkCheck = new CheckBox("Neural Network");
+        mctsCheck.setIndeterminate(false);
+        networkCheck.setIndeterminate(false);
+
+        mctsCheck.selectedProperty().addListener((ov, old_val, new_val) -> {
+            if (!useNN) {
+                networkCheck.fire();
+            }
+            useMCTS = new_val;
+        });
+        mctsCheck.setSelected(true);
+
+        networkCheck.selectedProperty().addListener((ov, old_val, new_val) -> {
+            if (!useMCTS) {
+                mctsCheck.fire();
+            }
+            useNN = new_val;
+        });
+        networkCheck.setSelected(true);
+
+        Text ai_options = new Text("AI Options");
+        ai_options.getStyleClass().add("heading");
+        optionsMenu.getChildren().addAll(ai_options, mctsCheck, networkCheck);
+
+        Text game_options = new Text("Game Options");
+        game_options.getStyleClass().add("heading");
+
+        CheckBox dots = new CheckBox("Dots");
+        CheckBox energizers = new CheckBox("Energizers");
+        CheckBox ghosts = new CheckBox("Ghosts");
+        dots.setIndeterminate(false);
+        energizers.setIndeterminate(false);
+        ghosts.setIndeterminate(false);
+
+        dots.selectedProperty().addListener((ov, old_val, new_val) -> useDots = new_val);
+        energizers.selectedProperty().addListener((ov, old_val, new_val) -> useEnergizers = new_val);
+        ghosts.selectedProperty().addListener((ov, old_val, new_val) -> useGhosts = new_val);
+
+        dots.setSelected(true);
+        energizers.setSelected(true);
+        ghosts.setSelected(true);
+
+        optionsMenu.getChildren().addAll(game_options, dots, energizers, ghosts);
+        optionsMenu.setMargin(game_options, new Insets(20, 0, 0, 0));
+
+        Button backButton = new Button();
+        backButton.setOnAction(event -> mainStage.setScene(scene));
+        setButtonText(backButton, "main menu");
+
+        Button exitButton = new Button();
+        exitButton.setOnAction(event -> Platform.exit());
+        setButtonText(exitButton, "quit");
+
+        optionsMenu.getChildren().addAll(backButton, exitButton);
+        optionsMenu.setMargin(backButton, new Insets(50, 0, 0, 0));
+
+        return optionsMenu;
+    }
+
+    // Used to create button effects.
     private void setButtonText(Button button, String text){
         button.textProperty().bind(
                 Bindings.when(button.hoverProperty())
@@ -504,7 +590,6 @@ public class Game extends Application {
         root = new Group();
         scene = new Scene(root, 592, 720, Color.BLACK);
         mainStage.setScene(scene);
-        mainStage.show();
 
         canvas = new Canvas(592,720);
         root.getChildren().add(canvas);
@@ -558,14 +643,14 @@ public class Game extends Application {
             rowCounter += 1;
             for (int code : row) {
                 colCounter = (colCounter + 1) % COLUMNS;
-                if(code == 1){
+                if(code == 1 && useDots) {
                     Sprite pill = new Sprite();
                     pill.setImage("Sprites/Pickups/pill.png");
                     double px = 21 + 20 * colCounter;
                     double py = 21 + 20 * rowCounter;
                     pill.setPosition(px, py);
                     pillsList.add(pill);
-                } else if (code == 2) {
+                } else if (code == 2 && useEnergizers) {
                     Sprite powerPill = new Sprite();
                     powerPill.setImage("Sprites/Pickups/powerPill.png");
                     double px = 13 + 20 * colCounter;
@@ -614,38 +699,45 @@ public class Game extends Application {
             }
         }
 
-        // Initialise ghosts.
-        blinky = new Ghost("blinky");
-        pinky = new Ghost("pinky");
-        inky = new Ghost("inky");
-        clyde = new Ghost("clyde");
-        ghosts.add(blinky);
-        ghosts.add(pinky);
-        ghosts.add(inky);
-        ghosts.add(clyde);
-        resetGhosts();
+        if (useGhosts) {
+            // Initialise ghosts.
+            blinky = new Ghost("blinky");
+            pinky = new Ghost("pinky");
+            inky = new Ghost("inky");
+            clyde = new Ghost("clyde");
+
+            ghosts.add(blinky);
+            ghosts.add(pinky);
+            ghosts.add(inky);
+            ghosts.add(clyde);
+            resetGhosts();
+
+            // Initialise debug markers.
+            blinkyMarker = new Sprite();
+            blinkyMarker.setImage("Sprites/Markers/blinky.png");
+            pinkyMarker = new Sprite();
+            pinkyMarker.setImage("Sprites/Markers/pinky.png");
+            inkyMarker = new Sprite();
+            inkyMarker.setImage("Sprites/Markers/inky.png");
+            clydeMarker = new Sprite();
+            clydeMarker.setImage("Sprites/Markers/clyde.png");
+
+            // Initialise counters.
+            pinkyCounter = 0;
+            inkyCounter = 0;
+            clydeCounter = 0;
+            ghostsEaten = 0;
+        }
 
         // Initialise debug markers.
         previousMarker = new Sprite();
         previousMarker.setImage("Sprites/Markers/pacman.png");
         nextMarker = new Sprite();
         nextMarker.setImage("Sprites/Markers/pacman.png");
-        blinkyMarker = new Sprite();
-        blinkyMarker.setImage("Sprites/Markers/blinky.png");
-        pinkyMarker = new Sprite();
-        pinkyMarker.setImage("Sprites/Markers/pinky.png");
-        inkyMarker = new Sprite();
-        inkyMarker.setImage("Sprites/Markers/inky.png");
-        clydeMarker = new Sprite();
-        clydeMarker.setImage("Sprites/Markers/clyde.png");
 
         // Initialise counters.
         score = 0;
         lives = 2;
-        pinkyCounter = 0;
-        inkyCounter = 0;
-        clydeCounter = 0;
-        ghostsEaten = 0;
     }
 
     // Fills the input array with the relevant values.
@@ -922,7 +1014,9 @@ public class Game extends Application {
             }
 
             // Update each ghost.
-            updateGhostsWrapper();
+            if (useGhosts) {
+                updateGhostsWrapper();
+            }
 
             // If we aren't in a MCTS simulation / play-out, update the screen.
             if (!simulation) {
@@ -1043,19 +1137,13 @@ public class Game extends Application {
 
     private void eatPills() {
         Iterator<Sprite> pills = pillsList.iterator();
+        boolean pillEaten = false;
         while (pills.hasNext()) {
             Sprite pill = pills.next();
             if (pacman.canEat(pill)) {
                 pills.remove();
                 score += 10;
-                if (!pinky.isActive()) {
-                    pinkyCounter += 1;
-                } else if (!inky.isActive()) {
-                    inkyCounter += 1;
-                } if (!clyde.isActive()) {
-                    clydeCounter += 1;
-                }
-                eatenCoolDown = 0;
+                pillEaten = true;
             }
         }
         Iterator<Sprite> powerPills = powerPillsList.iterator();
@@ -1066,24 +1154,32 @@ public class Game extends Application {
                 score += 50;
                 scaredGhosts(true);
                 ghostsEaten = 0;
+                pillEaten = true;
+            }
+        }
+
+        if (useGhosts) {
+            if (pillEaten) {
                 if (!pinky.isActive()) {
                     pinkyCounter += 1;
                 } else if (!inky.isActive()) {
                     inkyCounter += 1;
-                } if (!clyde.isActive()) {
+                }
+                if (!clyde.isActive()) {
                     clydeCounter += 1;
                 }
                 eatenCoolDown = 0;
             }
+
+            if (!pinky.isActive() && pinkyCounter == 3) {
+                pinky.setActive();
+            } else if (!inky.isActive() && inkyCounter == 30) {
+                inky.setActive();
+            } else if (clyde.isActive() && clydeCounter == 60) {
+                clyde.setActive();
+            }
+            eatenCoolDown += 1;
         }
-        if (!pinky.isActive() && pinkyCounter == 3) {
-            pinky.setActive();
-        } else if (!inky.isActive() && inkyCounter == 30) {
-            inky.setActive();
-        } else if (clyde.isActive() && clydeCounter == 60) {
-            clyde.setActive();
-        }
-        eatenCoolDown += 1;
     }
 
     private void updateScreen() {
@@ -1352,6 +1448,8 @@ public class Game extends Application {
         exitButton.setOnAction(event -> menu());
 
         vBox.getChildren().addAll(sceneTitle, scoreText, newGameButton, exitButton);
+
+        vBox.setMargin(newGameButton, new Insets(20, 0, 0, 0));
 
         scene = new Scene(vBox, 592,720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
