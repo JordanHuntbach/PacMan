@@ -12,7 +12,7 @@ Things to experiment with:
 
 Go over all the MCTS code, and PAY ATTENTION. I'm convinced there is a bug, or else Pac-Man is suicidal.
 There's a problem with the ghosts eating Pac-Man. I believe that when they do so and we aren't in a playout (still just
-moving according to the tree structure), we don't backpropagate correctly. We don't update the tree to reflect that a
+moving according to the tree structure), we don't back-propagate correctly. We don't update the tree to reflect that a
 branch results in death.
 
 Notes:

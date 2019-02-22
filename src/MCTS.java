@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class MCTS {
 
-    public static int ROUNDS = 30;
+    public static int ROUNDS = 20;
     public static int MAX_MOVES = 20;
 
     private MCTSTreeNode root;
@@ -15,6 +15,7 @@ public class MCTS {
     private Random rand = new Random();
 
     private Deque<String> directions = new ArrayDeque<>();
+    private Deque<MCTSTreeNode> nodesSelected = new ArrayDeque<>();
 
     private MCTSTreeNode leafNode;
 
@@ -32,39 +33,48 @@ public class MCTS {
         root.expandChildren();
     }
 
-    private MCTSTreeNode getRandomChild(MCTSTreeNode parent) {
-        List<MCTSTreeNode> nodes = parent.getChildren();
-        MCTSTreeNode selected = nodes.get(rand.nextInt(nodes.size()));
-        directions.add(directionToChild(parent, selected));
-        return selected;
-    }
-
     public void selection() {
+        directions.clear();
+        nodesSelected.clear();
 
         MCTSTreeNode selected = root;
+        nodesSelected.add(root);
 
         while (!selected.isLeaf()) {
             MCTSTreeNode next = null;
             double max = 0;
             for (MCTSTreeNode child: selected.getChildren()) {
-                // Mean reward of child + exploration parameter * sqrt(ln(parent visits)/child visits)
-                double c = 10;
+                if (!child.leadsToDeath()) {
+                    // Mean reward of child + exploration parameter * sqrt(ln(parent visits)/child visits)
+                    double c = 10;
 
-                if (child.getVisitCount() == 0) {
-                    directions.add(directionToChild(selected, child));
-                    leafNode = child;
-                    return;
-                } else {
-                    double heuristic = child.getAverageScore() + c * Math.sqrt(Math.log(selected.getVisitCount())/child.getVisitCount());
-                    if (heuristic > max) {
-                        max = heuristic;
+                    if (child.getVisitCount() == 0) {
                         next = child;
+                        break;
+                    } else {
+                        double heuristic = child.getAverageScore() + c * Math.sqrt(Math.log(selected.getVisitCount()) / child.getVisitCount());
+                        if (heuristic > max) {
+                            max = heuristic;
+                            next = child;
+                        }
                     }
                 }
             }
-            assert next != null;
-            directions.add(directionToChild(selected, next));
-            selected = next;
+            if (next == null) {
+                selected.setLeadsToDeath(true);
+                if (selected.isRoot()) {
+                    leafNode = root;
+                    return;
+                } else {
+                    selected = selected.getParentNode();
+                    nodesSelected.removeLast();
+                    directions.removeLast();
+                }
+            } else {
+                directions.add(directionToChild(selected, next));
+                selected = next;
+                nodesSelected.add(selected);
+            }
         }
 
         leafNode = selected;
@@ -72,18 +82,39 @@ public class MCTS {
 
     public void expansion() {
         leafNode.expandChildren();
-        leafNode = getRandomChild(leafNode);
+
+        MCTSTreeNode child = getRandomChild(leafNode);
+
+        directions.add(directionToChild(leafNode, child));
+        nodesSelected.add(child);
+        leafNode = child;
+    }
+
+    private MCTSTreeNode getRandomChild(MCTSTreeNode parent) {
+        List<MCTSTreeNode> nodes = parent.getChildren();
+        return nodes.get(rand.nextInt(nodes.size()));
     }
 
     public void backPropagation(int score) {
-        leafNode.updateStats(score);
         notInPlayout = true;
+
+        if (directions.size() != 0) {
+            leafNode = nodesSelected.removeFirst();
+            leafNode.setLeadsToDeath(true);
+        }
+
+        leafNode.updateStats(score);
+
     }
 
     public String nextDirection() {
+        System.out.println("Get next direction.");
+        System.out.println(directions);
         if (directions.size() == 0) {
             return null;
         } else {
+            System.out.println(nodesSelected);
+            nodesSelected.removeFirst();            // THIS LINE IS THE CRASHER
             return directions.removeFirst();
         }
     }

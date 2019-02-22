@@ -1,8 +1,6 @@
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,7 +10,8 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -22,7 +21,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import sun.tools.jstat.Alignment;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -106,7 +104,7 @@ public class Game extends Application {
     private Ghost clyde;
 
     // Player speed.
-    int SPEED = 2;
+    private int SPEED = 2;
 
     // Sprites that mark Pac-Man's position and the ghosts' targets.
     private boolean debug = false;
@@ -1067,7 +1065,7 @@ public class Game extends Application {
             }
 
             // If we aren't in a MCTS simulation / play-out, update the screen.
-            if (!simulation) {
+            if (!simulation || debug) {
                 Platform.runLater(this::updateScreen);
                 try {
                     Thread.sleep(10);

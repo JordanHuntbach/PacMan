@@ -7,6 +7,7 @@ class MCTSTreeNode {
     private double maxScore;
     private int visitCount;
     private boolean root;
+    private boolean leadsToDeath = false;
 
     private ArrayList<MCTSTreeNode> children = new ArrayList<>();
     private MCTSTreeNode parentNode;
@@ -52,6 +53,14 @@ class MCTSTreeNode {
         }
     }
 
+    public boolean isRoot() {
+        return root;
+    }
+
+    public MCTSTreeNode getParentNode() {
+        return parentNode;
+    }
+
     public double getAverageScore(){
         return averageScore;
     }
@@ -66,5 +75,13 @@ class MCTSTreeNode {
 
     public Position getPosition() {
         return position;
+    }
+
+    public boolean leadsToDeath() {
+        return leadsToDeath;
+    }
+
+    public void setLeadsToDeath(boolean leadsToDeath) {
+        this.leadsToDeath = leadsToDeath;
     }
 }
