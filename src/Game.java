@@ -720,10 +720,10 @@ public class Game extends Application {
 
         if (useGhosts) {
             // Initialise ghosts.
-            blinky = new Ghost("blinky");
-            pinky = new Ghost("pinky");
-            inky = new Ghost("inky");
-            clyde = new Ghost("clyde");
+            blinky = new Ghost("blinky", new Position(527, 0));
+            pinky = new Ghost("pinky", new Position(47, 0));
+            inky = new Ghost("inky", new Position(547, 627));
+            clyde = new Ghost("clyde", new Position(27, 627));
 
             ghosts.add(blinky);
             ghosts.add(pinky);

@@ -9,6 +9,8 @@ public class Ghost extends Sprite {
     private int SPEED = 2;
 
     private boolean chase = true;
+    private boolean scatter = true;
+    private Position scatterTarget;
 
     private AStarSearch search = new AStarSearch();
 
@@ -18,9 +20,10 @@ public class Ghost extends Sprite {
 
     private String filepath;
 
-    Ghost(String ghostName) {
+    Ghost(String ghostName, Position scatterTarget) {
         filepath = "Sprites/Ghosts/" + ghostName.substring(0, 1).toUpperCase() + ghostName.substring(1) + "/" + ghostName;
         active = true;
+        this.scatterTarget = scatterTarget;
     }
 
     Ghost(Ghost ghost) {
@@ -37,6 +40,8 @@ public class Ghost extends Sprite {
         this.velocityX = ghost.velocityX;
         this.velocityY = ghost.velocityY;
         this.setImage(ghost.getImage());
+        this.scatter = ghost.scatter;
+        this.scatterTarget = ghost.scatterTarget;
     }
 
     private int forwards = 0; // 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT
@@ -77,6 +82,11 @@ public class Ghost extends Sprite {
 
         if (junction != null) {
             String nextDirection = null;
+
+            if (scatter) {
+                targetX = scatterTarget.getPositionX();
+                targetY = scatterTarget.getPositionY();
+            }
 
             if (chase && !spooked) {
 //                // A* Search - replaced with arcade search method
