@@ -80,6 +80,14 @@ public class AStarSearch {
         return null;
     }
 
+    public List<Position> checkPathEnd(List<Position> path, Position target){
+        int length = path.size();
+        if (length == 0 || !path.get(length - 1).equals(target)) {
+            path.add(target);
+        }
+        return path;
+    }
+
     private List<Position> positions = Position.initialisePositions();
 
     Position getNearestPosition(double x, double y){

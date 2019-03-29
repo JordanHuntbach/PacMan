@@ -444,4 +444,8 @@ public class Position {
         }
         return false;
     }
+
+    public double distanceTo(Position other) {
+        return Math.sqrt(Math.pow(other.getPositionX() - this.getPositionX(), 2) + Math.pow(other.getPositionY() - this.getPositionY(), 2));
+    }
 }

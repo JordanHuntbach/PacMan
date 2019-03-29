@@ -60,12 +60,10 @@ public class Ghost extends Sprite {
             setEyes(false);
         }
 
-        boolean onJunction = false;
         Position junction = null;
 
         for (Position position : Position.junctions.keySet()) {
             if (positionX == position.getPositionX() && positionY == position.getPositionY()) {
-                onJunction = true;
                 junction = position;
                 break;
             }
@@ -77,24 +75,63 @@ public class Ghost extends Sprite {
             this.setImage("Sprites/Ghosts/eyes.png");
         }
 
-        if (onJunction) {
-            String nextDirection;
+        if (junction != null) {
+            String nextDirection = null;
+
             if (chase && !spooked) {
-                Position startPos = search.getNearestPosition(junction.getPositionX(), junction.getPositionY());
-                Position targetPos = search.getNearestPosition(targetX, targetY);
-                List<Position> path = search.findPath(startPos, targetPos);
-                if (path == null || path.size() == 0) {
-                    nextDirection = getRandomDirection(junction);
-                } else {
-                    Position next = path.get(0);
-                    nextDirection = getDirectionToNeighbour(junction, next);
-                    if (nextDirection.equals(backwardsString)) {
-                        nextDirection = getRandomDirection(junction); // TODO: Better method of preventing reversals.
+//                // A* Search - replaced with arcade search method
+//                Position startNode = search.getNearestPosition(junction.getPositionX(), junction.getPositionY());
+//                Position targetNode = search.getNearestPosition(targetX, targetY);
+//                Position targetPosition = new Position(targetX, targetY);
+//                List<Position> path = search.checkPathEnd(search.findPath(startNode, targetNode), targetPosition);
+//                if (path == null || path.size() == 0) {
+//                    System.out.println("Broken A* path");
+//                    nextDirection = getRandomDirection(junction);
+//                } else {
+//                    Position next = path.get(0);
+//                    nextDirection = getDirectionToNeighbour(junction, next);
+//                    if (nextDirection.equals(backwardsString)) {
+//                        nextDirection = getRandomDirection(junction); // TODO: Better method of preventing reversals.
+//                    }
+//                }
+
+                // Old school search.
+                boolean[] options = Position.directionOptions[Position.junctions.get(junction)];
+                ArrayList<String> excludingBackwards = new ArrayList<>();
+                for (int i = 0; i < 4; i++) {
+                    if (i != backwards && options[i]) {
+                        excludingBackwards.add(directions.get(i));
+                    }
+                }
+
+                double minDistance = Double.MAX_VALUE;
+                for (String direction : excludingBackwards) {
+                    Position move = junction;
+                    switch (direction) {
+                        case "Up":
+                            move = new Position(this.positionX, this.positionY - 20);
+                            break;
+                        case "Down":
+                            move = new Position(this.positionX, this.positionY + 20);
+                            break;
+                        case "Left":
+                            move = new Position(this.positionX - 20, this.positionY);
+                            break;
+                        case "Right":
+                            move = new Position(this.positionX + 20, this.positionY);
+                            break;
+                    }
+                    Position target = new Position(targetX, targetY);
+                    double distance = move.distanceTo(target);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nextDirection = direction;
                     }
                 }
             } else {
                 nextDirection = getRandomDirection(junction);
             }
+
             switch (nextDirection) {
                 case "Up":
                     forwards = 0;
