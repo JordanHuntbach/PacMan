@@ -83,7 +83,7 @@ public class Ghost extends Sprite {
 //                Position startNode = search.getNearestPosition(junction.getPositionX(), junction.getPositionY());
 //                Position targetNode = search.getNearestPosition(targetX, targetY);
 //                Position targetPosition = new Position(targetX, targetY);
-//                List<Position> path = search.checkPathEnd(search.findPath(startNode, targetNode), targetPosition);
+//                List<Position> path = search.findPath(startNode, targetNode);
 //                if (path == null || path.size() == 0) {
 //                    System.out.println("Broken A* path");
 //                    nextDirection = getRandomDirection(junction);
@@ -97,6 +97,14 @@ public class Ghost extends Sprite {
 
                 // Old school search.
                 boolean[] options = Position.directionOptions[Position.junctions.get(junction)];
+
+                // Prevent ghosts turning up in special positions.
+                for (Position position: Position.getSpecialPositions()) {
+                    if (position.equals(junction)) {
+                        options = new boolean[] {false, false, true, true};
+                        break;
+                    }
+                }
                 ArrayList<String> excludingBackwards = new ArrayList<>();
                 for (int i = 0; i < 4; i++) {
                     if (i != backwards && options[i]) {

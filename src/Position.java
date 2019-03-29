@@ -6,9 +6,20 @@ public class Position {
     private double positionX;
     private double positionY;
 
+    private static List<Position> specialPositions = new ArrayList<Position>() {{
+        add(new Position(247, 227));
+        add(new Position(307, 227));
+        add(new Position(247, 467));
+        add(new Position(307, 467));
+    }};
+
     Position(double x, double y) {
         positionX = x;
         positionY = y;
+    }
+
+    public static List<Position> getSpecialPositions() {
+        return specialPositions;
     }
 
     public double getPositionX() {
