@@ -82,10 +82,10 @@ public class Position {
         put(new Position(247, 227), 7);
         put(new Position(307, 227), 7);
         put(new Position(367, 227), 3);
-        put(new Position(127, 287), 8);
+        put(new Position(127, 287), 9);
         put(new Position(187, 287), 5);
         put(new Position(367, 287), 6);
-        put(new Position(427, 287), 8);
+        put(new Position(427, 287), 9);
         put(new Position(187, 347), 6);
         put(new Position(367, 347), 5);
         put(new Position(27, 407), 4);
