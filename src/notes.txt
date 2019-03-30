@@ -1,6 +1,7 @@
 Things that need doing:
     After training, do something with the GUI.
-    More levels.
+    Make game get harder every level.
+    Ghosts reverse weirdly.
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.

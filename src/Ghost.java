@@ -55,15 +55,19 @@ public class Ghost extends Sprite {
         switch (backwardsString) {
             case "Up":
                 backwardsString = "Down";
+                velocityY = SPEED;
                 break;
             case "Down":
                 backwardsString = "Up";
+                velocityY = -SPEED;
                 break;
             case "Left":
                 backwardsString = "Right";
+                velocityX = SPEED;
                 break;
             case "Right":
                 backwardsString = "Left";
+                velocityX = -SPEED;
                 break;
         }
 

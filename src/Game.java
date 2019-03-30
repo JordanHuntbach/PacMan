@@ -116,22 +116,22 @@ public class Game extends Application {
     private Sprite clydeMarker;
 
     // Score and life counters.
-    private int score = 0;
-    private int lives = 2;
+    private int score;
+    private int lives;
 
     // Timers for when the ghosts get released.
-    private int pinkyCounter = 0;
-    private int inkyCounter = 0;
-    private int clydeCounter = 0;
-    private int eatenCoolDown = 0;
-    private int scaredCounter = -1;
+    private int pinkyCounter;
+    private int inkyCounter;
+    private int clydeCounter;
+    private int eatenCoolDown;
+    private int scaredCounter;
 
 
     // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
     // private int[] modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
     private int[] modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
-    private int currentMode = 0;
-    private int modeCounter = 0;
+    private int currentMode;
+    private int modeCounter;
     private int level = 1;
 
     // Fields used in Pac-Man's movement.
@@ -733,6 +733,7 @@ public class Game extends Application {
             inky = new Ghost("inky", new Position(547, 627));
             clyde = new Ghost("clyde", new Position(27, 627));
 
+            ghosts.clear();
             ghosts.add(blinky);
             ghosts.add(pinky);
             ghosts.add(inky);
@@ -755,6 +756,7 @@ public class Game extends Application {
             clydeCounter = 0;
             ghostsEaten = 0;
             modeCounter = 0;
+            currentMode = 0;
         }
 
         // Initialise debug markers.
@@ -1064,7 +1066,7 @@ public class Game extends Application {
 
             // If all pills eaten, end the loop and display a 'congrats' message.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
-                Platform.runLater(() -> gameOver(true));
+                Platform.runLater(this::nextLevel);
                 break;
             }
 
@@ -1105,6 +1107,25 @@ public class Game extends Application {
                 }
             }
         }
+    }
+
+    private void nextLevel() {
+        level += 1;
+        int tempScore = score;
+        int tempLives = lives;
+        gameSetup();
+        score = tempScore;
+        lives = tempLives;
+
+        // Start the game in a non-GUI thread, to prevent blocking.
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() {
+                gameLoop();
+                return null;
+            }
+        };
+        new Thread(task).start();
     }
 
     // Moves Pac-Man
