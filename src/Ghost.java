@@ -49,25 +49,25 @@ public class Ghost extends Sprite {
     private int backwards = 1;
     private String backwardsString = "";
 
-    private ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
+    private static ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
 
     public void reverse() {
         switch (backwardsString) {
             case "Up":
                 backwardsString = "Down";
-                velocityY = SPEED;
+                velocityY = -SPEED;
                 break;
             case "Down":
                 backwardsString = "Up";
-                velocityY = -SPEED;
+                velocityY = SPEED;
                 break;
             case "Left":
                 backwardsString = "Right";
-                velocityX = SPEED;
+                velocityX = -SPEED;
                 break;
             case "Right":
                 backwardsString = "Left";
-                velocityX = -SPEED;
+                velocityX = SPEED;
                 break;
         }
 
@@ -182,13 +182,13 @@ public class Ghost extends Sprite {
             }
 
             if (junction.equals(new Position(127, 287))) {
-                if ("Left".equals(nextDirection)) {
+                if ("Left".equals(nextDirection) || spooked) {
                     SPEED = 1;
                 } else {
                     SPEED = 2;
                 }
             } else if (junction.equals(new Position(427, 287))) {
-                if ("Right".equals(nextDirection)) {
+                if ("Right".equals(nextDirection) || spooked) {
                     SPEED = 1;
                 } else {
                     SPEED = 2;
