@@ -50,6 +50,31 @@ public class Ghost extends Sprite {
 
     private ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
 
+    public void reverse() {
+        switch (backwardsString) {
+            case "Up":
+                backwardsString = "Down";
+                break;
+            case "Down":
+                backwardsString = "Up";
+                break;
+            case "Left":
+                backwardsString = "Right";
+                break;
+            case "Right":
+                backwardsString = "Left";
+                break;
+        }
+
+        int temp = backwards;
+        backwards = forwards;
+        forwards = temp;
+    }
+
+    public void setScatter(boolean scatter){
+        this.scatter = scatter;
+    }
+
     public void update(String colour, double targetX, double targetY) {
         if (!active) {
             return;

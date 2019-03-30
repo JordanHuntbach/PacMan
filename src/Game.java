@@ -33,7 +33,7 @@ import static java.lang.Thread.sleep;
 
 public class Game extends Application {
 
-    // This data structure represents the level.
+    // This data structure represents the map.
     /**
     Codes:
     1 = Pill
@@ -45,7 +45,7 @@ public class Game extends Application {
     7 = Corner (Top <-> Left)
     8 = Corner (Bottom <-> Left)
     */
-    private int[][] level = new int[][]{
+    private int[][] map = new int[][]{
             {6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 3, 3, 3, 8, 1, 4, 4, 1, 6, 3, 3, 3, 8, 1, 6, 3, 3, 8, 1, 4},
@@ -125,6 +125,9 @@ public class Game extends Application {
     private int clydeCounter = 0;
     private int eatenCoolDown = 0;
     private int scaredCounter = -1;
+    private int modeCounter = 0;
+    private int[] modeTimes = new int[] {7, 20, 7, 20, 5, 20, 5}; // Alternates between scatter and chase.
+    private int level = 1;
 
     // Fields used in Pac-Man's movement.
     private String currentDirection;
@@ -657,8 +660,8 @@ public class Game extends Application {
         int colCounter = -1;
         int COLUMNS = 28;
 
-        // Build the level, from the map.
-        for (int[] row : level) {
+        // Build the map.
+        for (int[] row : map) {
             rowCounter += 1;
             for (int code : row) {
                 colCounter = (colCounter + 1) % COLUMNS;
@@ -746,6 +749,7 @@ public class Game extends Application {
             inkyCounter = 0;
             clydeCounter = 0;
             ghostsEaten = 0;
+            modeCounter = 0;
         }
 
         // Initialise debug markers.
@@ -1332,7 +1336,25 @@ public class Game extends Application {
                 updateGhosts("Blue");
             }
         } else {
+            modeCounter += 1;
             updateGhosts(null);
+        }
+
+        for (int i = 0; i < modeTimes.length; i++) {
+            if (modeCounter == modeTimes[i]) {
+                if (i % 2 == 0) {
+                    // Chase
+                    for (Ghost ghost : ghosts) {
+                        ghost.setScatter(true);
+                    }
+                } else {
+                    // Scatter
+                    for (Ghost ghost : ghosts) {
+                        ghost.setScatter(false);
+                    }
+                }
+                break;
+            }
         }
     }
 
