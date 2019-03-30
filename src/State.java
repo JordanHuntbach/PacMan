@@ -15,6 +15,8 @@ public class State {
     private int clydeCounter;
     private int eatenCoolDown;
     private int scaredCounter;
+    private int modeCounter;
+    private int currentMode;
 
     State(Game game) {
         Sprite pacman = game.getPacman();
@@ -32,6 +34,8 @@ public class State {
         this.clydeCounter = game.getClydeCounter();
         this.eatenCoolDown = game.getEatenCoolDown();
         this.scaredCounter = game.getScaredCounter();
+        this.modeCounter = game.getModeCounter();
+        this.currentMode = game.getCurrentMode();
     }
 
     public Position getPacmanPosition() {
@@ -88,5 +92,13 @@ public class State {
 
     public int getScaredCounter() {
         return scaredCounter;
+    }
+
+    public int getModeCounter() {
+        return modeCounter;
+    }
+
+    public int getCurrentMode() {
+        return currentMode;
     }
 }

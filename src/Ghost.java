@@ -42,6 +42,7 @@ public class Ghost extends Sprite {
         this.setImage(ghost.getImage());
         this.scatter = ghost.scatter;
         this.scatterTarget = ghost.scatterTarget;
+        this.SPEED = ghost.SPEED;
     }
 
     private int forwards = 0; // 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT

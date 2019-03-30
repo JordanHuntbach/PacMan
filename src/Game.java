@@ -1567,6 +1567,8 @@ public class Game extends Application {
         this.clydeCounter = gameState.getClydeCounter();
         this.eatenCoolDown = gameState.getEatenCoolDown();
         this.scaredCounter = gameState.getScaredCounter();
+        this.currentMode = gameState.getCurrentMode();
+        this.modeCounter = gameState.getModeCounter();
         ghosts = new ArrayList<>();
         ghosts.add(blinky);
         ghosts.add(pinky);
@@ -1630,4 +1632,11 @@ public class Game extends Application {
         return scaredCounter;
     }
 
+    public int getCurrentMode() {
+        return currentMode;
+    }
+
+    public int getModeCounter() {
+        return modeCounter;
+    }
 }

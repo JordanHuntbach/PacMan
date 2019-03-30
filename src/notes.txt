@@ -1,7 +1,6 @@
 Things that need doing:
     After training, do something with the GUI.
     More levels.
-    STATE mode timer and ghost speed
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.
