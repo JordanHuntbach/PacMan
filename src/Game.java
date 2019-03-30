@@ -125,8 +125,13 @@ public class Game extends Application {
     private int clydeCounter = 0;
     private int eatenCoolDown = 0;
     private int scaredCounter = -1;
+
+
+    // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
+    // private int[] modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
+    private int[] modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
+    private int currentMode = 0;
     private int modeCounter = 0;
-    private int[] modeTimes = new int[] {7, 20, 7, 20, 5, 20, 5}; // Alternates between scatter and chase.
     private int level = 1;
 
     // Fields used in Pac-Man's movement.
@@ -1305,6 +1310,9 @@ public class Game extends Application {
             adjustPosition(ghost);
             if (!ghost.isEyes()) {
                 ghost.setScared(scared);
+                if (scared) {
+                    ghost.reverse();
+                }
             }
         }
     }
@@ -1318,6 +1326,26 @@ public class Game extends Application {
                 inky.setActive();
             } else if (!clyde.isActive()) {
                 clyde.setActive();
+            }
+        }
+
+        for (int i = currentMode; i < modeTimes.length; i++) {
+            if (modeCounter >= modeTimes[i]) {
+                if (i % 2 == 0) {
+                    // Chase
+                    for (Ghost ghost : ghosts) {
+                        ghost.setScatter(false);
+                        ghost.reverse();
+                    }
+                } else {
+                    // Scatter
+                    for (Ghost ghost : ghosts) {
+                        ghost.setScatter(true);
+                        ghost.reverse();
+                    }
+                }
+                currentMode += 1;
+                break;
             }
         }
 
@@ -1340,22 +1368,6 @@ public class Game extends Application {
             updateGhosts(null);
         }
 
-        for (int i = 0; i < modeTimes.length; i++) {
-            if (modeCounter == modeTimes[i]) {
-                if (i % 2 == 0) {
-                    // Chase
-                    for (Ghost ghost : ghosts) {
-                        ghost.setScatter(true);
-                    }
-                } else {
-                    // Scatter
-                    for (Ghost ghost : ghosts) {
-                        ghost.setScatter(false);
-                    }
-                }
-                break;
-            }
-        }
     }
 
     private void updateGhosts(String colour) {
