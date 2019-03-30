@@ -1,7 +1,7 @@
 Things that need doing:
     After training, do something with the GUI.
     More levels.
-    Add in the nuances of ghost reversal and scatter mode
+    STATE mode timer and ghost speed
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.

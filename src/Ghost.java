@@ -140,6 +140,7 @@ public class Ghost extends Sprite {
                         break;
                     }
                 }
+
                 ArrayList<String> excludingBackwards = new ArrayList<>();
                 for (int i = 0; i < 4; i++) {
                     if (i != backwards && options[i]) {
@@ -173,6 +174,20 @@ public class Ghost extends Sprite {
                 }
             } else {
                 nextDirection = getRandomDirection(junction);
+            }
+
+            if (junction.equals(new Position(127, 287))) {
+                if ("Left".equals(nextDirection)) {
+                    SPEED = 1;
+                } else {
+                    SPEED = 2;
+                }
+            } else if (junction.equals(new Position(427, 287))) {
+                if ("Right".equals(nextDirection)) {
+                    SPEED = 1;
+                } else {
+                    SPEED = 2;
+                }
             }
 
             switch (nextDirection) {
