@@ -1,6 +1,8 @@
 Things that need doing:
     After training, do something with the GUI.
     Make sure that game state has all the necessary variables.
+    Stop eyes scattering
+    Stop ghosts phasing out of the pen
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.

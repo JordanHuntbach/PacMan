@@ -89,6 +89,9 @@ public class Ghost extends Sprite {
     private static ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
 
     public void reverse() {
+        if (eyes) {
+            return;
+        }
         switch (backwardsString) {
             case "Up":
                 backwardsString = "Down";
@@ -196,7 +199,7 @@ public class Ghost extends Sprite {
         } else if (junction != null) {
             String nextDirection = null;
 
-            if (scatter) {
+            if (scatter && !eyes) {
                 targetX = scatterTarget.getPositionX();
                 targetY = scatterTarget.getPositionY();
             }
