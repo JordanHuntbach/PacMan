@@ -1395,14 +1395,16 @@ public class Game extends Application {
         double pacX = pacman.positionX;
         double pacY = pacman.positionY;
 
+        Position target;
+
         if (blinky.isActive()) {
             if (blinky.isEyes()) {
-                blinky.update(colour, 277, 227);
-                blinkyMarker.setPosition(6 + 277, 6 + 227);
+                target = new Position(277, 277);
             } else {
-                blinky.update(colour, pacX, pacY);
-                blinkyMarker.setPosition(6 + pacX, 6 + pacY);
+                target = new Position(pacX, pacY);
             }
+            blinky.update(colour, target.getPositionX(), target.getPositionY());
+            blinkyMarker.setPosition(target.getPositionX(), target.getPositionY());
         }
 
         double blinkyX = blinky.getPositionX();
@@ -1413,66 +1415,72 @@ public class Game extends Application {
 
         if (pacman.velocityX > 0) {
             if (pinky.isEyes()) {
-                pinky.update(colour, 277, 227);
-                pinkyMarker.setPosition(6 + 277, 6 + 227);
-            } else if (pinky.isActive()) {
-                pinky.update(colour, pacX + 80, pacY);
-                pinkyMarker.setPosition(6 + pacX + 80, 6 + pacY);
+                target = new Position(277, 277);
+            } else {
+                target = new Position(pacX + 80, pacY);
             }
             vectorX = pacX + 40 - blinkyX;
             vectorY = pacY - blinkyY;
         } else if (pacman.velocityX < 0) {
             if (pinky.isEyes()) {
-                pinky.update(colour, 277, 227);
-                pinkyMarker.setPosition(6 + 277, 6 + 227);
-            } else if (pinky.isActive()) {
-                pinky.update(colour, pacX - 80, pacY);
-                pinkyMarker.setPosition(6 + pacX - 80, 6 + pacY);
+                target = new Position(277, 277);
+            } else {
+                target = new Position(pacX - 80, pacY);
             }
             vectorX = pacX - 40 - blinkyX;
             vectorY = pacY - blinkyY;
         } else if (pacman.velocityY > 0) {
             if (pinky.isEyes()) {
-                pinky.update(colour, 277, 227);
-                pinkyMarker.setPosition(6 + 277, 6 + 227);
-            } else if (pinky.isActive()) {
-                pinky.update(colour, pacX, pacY + 80);
-                pinkyMarker.setPosition(6 + pacX, 6 + pacY + 80);
+                target = new Position(277, 277);
+            } else {
+                target = new Position(pacX, pacY + 80);
             }
             vectorX = pacX - blinkyX;
             vectorY = pacY + 40 - blinkyY;
         } else {
             if (pinky.isEyes()) {
-                pinky.update(colour, 277, 227);
-                pinkyMarker.setPosition(6 + 277, 6 + 227);
-            } else if (pinky.isActive()) {
-                pinky.update(colour, pacX, pacY - 80);
-                pinkyMarker.setPosition(6 + pacX, 6 + pacY - 80);
+                target = new Position(277, 277);
+            } else {
+                target = new Position(pacX, pacY - 80);
             }
             vectorX = pacX - blinkyX;
             vectorY = pacY - 40 - blinkyY;
         }
 
-        if (inky.isEyes()) {
-            inky.update(colour, 277, 227);
-            inkyMarker.setPosition(6 + 277, 6 + 227);
-        } else if (inky.isActive()) {
-            inky.update(colour, blinkyX + 2 * vectorX, blinkyY + 2 * vectorY);
-            inkyMarker.setPosition(6 + blinkyX + 2 * vectorX, 6 + blinkyY + 2 * vectorY);
+        if (pinky.isActive()) {
+            pinky.update(colour, target.getPositionX(),  target.getPositionY());
+            pinkyMarker.setPosition(target.getPositionX(), target.getPositionY());
         }
 
-        if (clyde.isEyes()) {
-            clyde.update(colour, 277, 227);
-            clydeMarker.setPosition(6 + 277, 6 + 227);
-        } else if (clyde.isActive()) {
-            if (Math.abs(clyde.getPositionX() - pacX) + Math.abs(clyde.getPositionY() - pacY) > 160) {
-                clyde.update(colour, pacX, pacY);
-                clydeMarker.setPosition(6 + pacX, 6 + pacY);
+        if (inky.isActive()) {
+            if (inky.isEyes()) {
+                target = new Position(277, 277);
             } else {
-                clyde.update(colour, 27, 587);
-                clydeMarker.setPosition(6 + 27, 6 + 587);
+                target = new Position(blinkyX + 2 * vectorX, blinkyY + 2 * vectorY);
             }
+            inky.update(colour, target.getPositionX(),  target.getPositionY());
+            inkyMarker.setPosition(target.getPositionX(), target.getPositionY());
         }
+
+        if (clyde.isActive()) {
+            if (clyde.isEyes()) {
+                target = new Position(277, 277);
+            } else {
+                if (Math.abs(clyde.getPositionX() - pacX) + Math.abs(clyde.getPositionY() - pacY) > 160) {
+                    target = new Position(pacX, pacY);
+                } else {
+                    target = new Position(27, 587);
+                }
+            }
+            clyde.update(colour, target.getPositionX(),  target.getPositionY());
+            clydeMarker.setPosition(target.getPositionX(), target.getPositionY());
+        }
+
+        blinkyMarker.setPosition(blinkyMarker.getPositionX() + 6, blinkyMarker.getPositionY() + 6);
+        pinkyMarker.setPosition(pinkyMarker.getPositionX() + 6, pinkyMarker.getPositionY() + 6);
+        inkyMarker.setPosition(inkyMarker.getPositionX() + 6, inkyMarker.getPositionY() + 6);
+        clydeMarker.setPosition(clydeMarker.getPositionX() + 6, clydeMarker.getPositionY() + 6);
+
     }
 
     private void resetPacman() {
