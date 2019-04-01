@@ -11,8 +11,11 @@ public class State {
     private Ghost clyde;
     private int ghostsEaten;
     private int pinkyCounter;
+    private int pinkyLimit;
     private int inkyCounter;
+    private int inkyLimit;
     private int clydeCounter;
+    private int clydeLimit;
     private int eatenCoolDown;
     private int scaredCounter;
     private int modeCounter;
@@ -30,8 +33,11 @@ public class State {
         this.clyde = new Ghost(game.getClyde());
         this.ghostsEaten = game.getGhostsEaten();
         this.pinkyCounter = game.getPinkyCounter();
+        this.pinkyLimit = game.getPinkyLimit();
         this.inkyCounter = game.getInkyCounter();
+        this.inkyLimit = game.getInkyLimit();
         this.clydeCounter = game.getClydeCounter();
+        this.clydeLimit = game.getClydeLimit();
         this.eatenCoolDown = game.getEatenCoolDown();
         this.scaredCounter = game.getScaredCounter();
         this.modeCounter = game.getModeCounter();
@@ -100,5 +106,17 @@ public class State {
 
     public int getCurrentMode() {
         return currentMode;
+    }
+
+    public int getPinkyLimit() {
+        return pinkyLimit;
+    }
+
+    public int getInkyLimit() {
+        return inkyLimit;
+    }
+
+    public int getClydeLimit() {
+        return clydeLimit;
     }
 }

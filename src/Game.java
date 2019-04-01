@@ -121,8 +121,11 @@ public class Game extends Application {
 
     // Timers for when the ghosts get released.
     private int pinkyCounter;
+    private int pinkyLimit = 0;
     private int inkyCounter;
+    private int inkyLimit = 30;
     private int clydeCounter;
+    private int clydeLimit = 60;
     private int eatenCoolDown;
     private int scaredCounter;
 
@@ -1061,6 +1064,14 @@ public class Game extends Application {
             // Move Pac-Man.
             updatePacman();
 
+            if (!pinky.isActive() && pinkyCounter == pinkyLimit) {
+                pinky.setActive();
+            } else if (!inky.isActive() && inkyCounter == inkyLimit) {
+                inky.setActive();
+            } else if (clyde.isActive() && clydeCounter == clydeLimit) {
+                clyde.setActive();
+            }
+
             // Eat pills.
             eatPills();
 
@@ -1118,6 +1129,12 @@ public class Game extends Application {
         lives = tempLives;
 
         if (level < 5) {
+            if (level == 2) {
+                inkyLimit = 0;
+                clydeLimit = 50;
+            } else if (level == 3) {
+                clydeLimit = 0;
+            }
             // modeTimes = new int[] {7, 27, 34, 54, 59, 1092, 1093};
             modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 60060, 60065}; // Multiply by 55 to get approximate seconds
         } else {
@@ -1248,20 +1265,12 @@ public class Game extends Application {
                     pinkyCounter += 1;
                 } else if (!inky.isActive()) {
                     inkyCounter += 1;
-                }
-                if (!clyde.isActive()) {
+                } else if (!clyde.isActive()) {
                     clydeCounter += 1;
                 }
                 eatenCoolDown = 0;
             }
 
-            if (!pinky.isActive() && pinkyCounter == 3) {
-                pinky.setActive();
-            } else if (!inky.isActive() && inkyCounter == 30) {
-                inky.setActive();
-            } else if (clyde.isActive() && clydeCounter == 60) {
-                clyde.setActive();
-            }
             eatenCoolDown += 1;
         }
     }
@@ -1512,10 +1521,10 @@ public class Game extends Application {
         blinky.setActive();
         pinky.setImage("Sprites/Ghosts/Pinky/pinkyUp.png");
         pinky.setScared(false);
-        pinky.setInactive(237);
+        pinky.setInactive(277);
         inky.setImage("Sprites/Ghosts/Inky/inkyUp.png");
         inky.setScared(false);
-        inky.setInactive(277);
+        inky.setInactive(237);
         clyde.setImage("Sprites/Ghosts/Clyde/clydeUp.png");
         clyde.setScared(false);
         clyde.setInactive(317);
@@ -1528,9 +1537,13 @@ public class Game extends Application {
         resetPacman();
         updateScreen();
 
-        pinkyCounter = -4;
-        inkyCounter = 20;
-        clydeCounter = 52;
+        pinkyCounter = 0;
+        inkyCounter = 0;
+        clydeCounter = 0;
+
+        pinkyLimit = 7;
+        inkyLimit = 10;
+        clydeLimit = 15;
 
         try {
             sleep(1500);
@@ -1600,8 +1613,11 @@ public class Game extends Application {
         this.clyde = new Ghost(gameState.getClyde());
         this.ghostsEaten = gameState.getGhostsEaten();
         this.pinkyCounter = gameState.getPinkyCounter();
+        this.pinkyLimit = gameState.getPinkyLimit();
         this.inkyCounter = gameState.getInkyCounter();
+        this.inkyLimit = gameState.getInkyLimit();
         this.clydeCounter = gameState.getClydeCounter();
+        this.clydeLimit = gameState.getClydeLimit();
         this.eatenCoolDown = gameState.getEatenCoolDown();
         this.scaredCounter = gameState.getScaredCounter();
         this.currentMode = gameState.getCurrentMode();
@@ -1675,5 +1691,17 @@ public class Game extends Application {
 
     public int getModeCounter() {
         return modeCounter;
+    }
+
+    public int getPinkyLimit() {
+        return pinkyLimit;
+    }
+
+    public int getInkyLimit() {
+        return inkyLimit;
+    }
+
+    public int getClydeLimit() {
+        return clydeLimit;
     }
 }
