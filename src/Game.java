@@ -1117,7 +1117,7 @@ public class Game extends Application {
                             break;
                         } else {
                             endGame = true;
-                            Platform.runLater(() -> gameOver(false));
+                            Platform.runLater(this::gameOver);
                             break;
                         }
                     }
@@ -1561,18 +1561,13 @@ public class Game extends Application {
         }
     }
 
-    private void gameOver(boolean won) {
+    private void gameOver() {
         VBox vBox = new VBox();
         vBox.setAlignment(Pos.CENTER);
         vBox.setSpacing(10);
         vBox.setPadding(new Insets(25, 25, 25, 25));
 
-        Text sceneTitle;
-        if (won) {
-            sceneTitle = new Text("Congratulations!");
-        } else {
-            sceneTitle = new Text("Game Over");
-        }
+        Text sceneTitle = new Text("Game Over");
         sceneTitle.getStyleClass().add("gameOver");
 
         Text scoreText = new Text("Final Score: " + score);

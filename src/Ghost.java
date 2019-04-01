@@ -89,7 +89,7 @@ public class Ghost extends Sprite {
     private static ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
 
     public void reverse() {
-        if (eyes) {
+        if (eyes || !active) {
             return;
         }
         switch (backwardsString) {
@@ -191,6 +191,7 @@ public class Ghost extends Sprite {
                 this.setVelocity(0, 0);
                 enteringDoor = false;
                 eyes = false;
+                active = false;
                 this.setImage(filepath + "Up.png");
                 if (name == ghostName.BLINKY) {
                     setActive();
