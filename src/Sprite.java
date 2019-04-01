@@ -51,6 +51,11 @@ public class Sprite
         positionY = y;
     }
 
+    public void setPosition(Position position) {
+        positionX = position.getPositionX();
+        positionY = position.getPositionY();
+    }
+
     public void setVelocity(double x, double y) {
         velocityX = x;
         velocityY = y;

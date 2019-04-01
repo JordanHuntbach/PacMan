@@ -1,10 +1,18 @@
 import javafx.geometry.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 public class Ghost extends Sprite {
+
+    enum ghostName {
+        BLINKY,
+        INKY,
+        PINKY,
+        CLYDE
+    }
+
+    private ghostName name;
 
     private int SPEED = 2;
 
@@ -14,16 +22,42 @@ public class Ghost extends Sprite {
 
     private AStarSearch search = new AStarSearch();
 
-    private boolean spooked;
-    private boolean active;
-    private boolean eyes;
+    private boolean spooked = false;
+    private boolean active = true;
+    private boolean eyes = false;
+
+    private boolean exitingDoor = false;
+    private boolean enteringDoor = false;
 
     private String filepath;
 
+    private Position home;
+
     Ghost(String ghostName, Position scatterTarget) {
         filepath = "Sprites/Ghosts/" + ghostName.substring(0, 1).toUpperCase() + ghostName.substring(1) + "/" + ghostName;
-        active = true;
         this.scatterTarget = scatterTarget;
+        switch (ghostName) {
+            case "blinky":
+                home = new Position(277, 227);
+                setPosition(home);
+                this.name = Ghost.ghostName.BLINKY;
+                break;
+            case "pinky":
+                home = new Position(277, 287);
+                setPosition(home);
+                this.name = Ghost.ghostName.PINKY;
+                break;
+            case "inky":
+                home = new Position(237, 287);
+                setPosition(home);
+                this.name = Ghost.ghostName.INKY;
+                break;
+            case "clyde":
+                home = new Position(317, 287);
+                setPosition(home);
+                this.name = Ghost.ghostName.CLYDE;
+                break;
+        }
     }
 
     Ghost(Ghost ghost) {
@@ -43,6 +77,9 @@ public class Ghost extends Sprite {
         this.scatter = ghost.scatter;
         this.scatterTarget = ghost.scatterTarget;
         this.SPEED = ghost.SPEED;
+        this.exitingDoor = ghost.exitingDoor;
+        this.enteringDoor = ghost.enteringDoor;
+        this.home = ghost.home;
     }
 
     private int forwards = 0; // 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT
@@ -76,6 +113,23 @@ public class Ghost extends Sprite {
         forwards = temp;
     }
 
+    public void reset() {
+        this.setPosition(home);
+
+        spooked = false;
+        active = true;
+        eyes = false;
+
+        exitingDoor = false;
+        enteringDoor = false;
+
+        this.setImage(filepath + "Up.png");
+
+        forwards = 0;
+        backwards = 1;
+        backwardsString = "";
+    }
+
     public void setScatter(boolean scatter){
         this.scatter = scatter;
     }
@@ -91,11 +145,12 @@ public class Ghost extends Sprite {
             positionX -= 580;
         }
 
-        if (positionX == 277 && positionY == 227) {
-            setEyes(false);
+        if (eyes && positionX == 277 && positionY == 227) {
+            enteringDoor = true;
         }
 
         Position junction = null;
+
 
         for (Position position : Position.junctions.keySet()) {
             if (positionX == position.getPositionX() && positionY == position.getPositionY()) {
@@ -104,13 +159,41 @@ public class Ghost extends Sprite {
             }
         }
 
+
         if (spooked && colour != null) {
             this.setImage("Sprites/Ghosts/scared" + colour + ".png");
         } else if (eyes) {
             this.setImage("Sprites/Ghosts/eyes.png");
         }
 
-        if (junction != null) {
+        if (exitingDoor) {
+            if (positionX < 277) {
+                this.setVelocity(1, 0);
+            } else if (positionX > 277) {
+                this.setVelocity(-1, 0);
+            } else if (positionY > 227) {
+                this.setVelocity(0, -1);
+            } else if (positionY == 227) {
+                this.setVelocity(0, 0);
+                exitingDoor = false;
+            }
+        } else if (enteringDoor) {
+            if (positionY < 287) {
+                this.setVelocity(0, 2);
+            } else if (positionX < home.getPositionX()) {
+                this.setVelocity(2, 0);
+            } else if (positionX > home.getPositionX()) {
+                this.setVelocity(-2, 0);
+            } else {
+                this.setVelocity(0, 0);
+                enteringDoor = false;
+                eyes = false;
+                this.setImage(filepath + "Up.png");
+                if (name == ghostName.BLINKY) {
+                    setActive();
+                }
+            }
+        } else if (junction != null) {
             String nextDirection = null;
 
             if (scatter) {
@@ -260,12 +343,11 @@ public class Ghost extends Sprite {
 
     public void setActive() {
         active = true;
-        this.setPosition(277, 227);
+        exitingDoor = true;
     }
 
-    public void setInactive(int x) {
+    public void setInactive() {
         active = false;
-        this.setPosition(x, 287);
     }
 
     public void setScared(boolean scared) {
@@ -345,5 +427,9 @@ public class Ghost extends Sprite {
 
     public void setEyes(boolean eyes) {
         this.eyes = eyes;
+    }
+
+    public boolean isEnteringDoor() {
+        return enteringDoor;
     }
 }

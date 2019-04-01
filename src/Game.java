@@ -44,6 +44,7 @@ public class Game extends Application {
     6 = Corner (Bottom <-> Right)
     7 = Corner (Top <-> Left)
     8 = Corner (Bottom <-> Left)
+    9 = Door
     */
     private int[][] map = new int[][]{
             {6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8},
@@ -58,7 +59,7 @@ public class Game extends Application {
             {5, 3, 3, 3, 3, 8, 1, 4, 5, 3, 3, 8, 0, 4, 4, 0, 6, 3, 3, 7, 4, 1, 6, 3, 3, 3, 3, 7},
             {0, 0, 0, 0, 0, 4, 1, 4, 6, 3, 3, 7, 0, 5, 7, 0, 5, 3, 3, 8, 4, 1, 4, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 6, 3, 3, 3, 3, 3, 3, 8, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
+            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 6, 3, 3, 9, 9, 3, 3, 8, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
             {3, 3, 3, 3, 3, 7, 1, 5, 7, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 5, 7, 1, 5, 3, 3, 3, 3, 3},
             {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
             {3, 3, 3, 3, 3, 8, 1, 6, 8, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 6, 8, 1, 6, 3, 3, 3, 3, 3},
@@ -687,7 +688,7 @@ public class Game extends Application {
                     double py = 13 + 20 * rowCounter;
                     powerPill.setPosition(px, py);
                     powerPillsList.add(powerPill);
-                } else if (3 <= code && code <= 8) {
+                } else if (3 <= code && code <= 9) {
                     Sprite wall;
                     double px = 16 + 20 * colCounter;
                     double py = 16 + 20 * rowCounter;
@@ -716,6 +717,11 @@ public class Game extends Application {
                         case 7:
                             wall = new Corner("TL");
                             wall.setImage("Sprites/Walls/cornerTL.png");
+                            break;
+                        case 9:
+                            wall = new Sprite();
+                            wall.setImage("Sprites/Walls/door.png");
+                            py += 9;
                             break;
                         default:
                             wall = new Corner("BL");
@@ -1515,19 +1521,22 @@ public class Game extends Application {
     }
 
     private void resetGhosts() {
+        for (Ghost ghost : ghosts) {
+            ghost.reset();
+        }
         blinky.setImage("Sprites/Ghosts/Blinky/blinkyUp.png");
         blinky.setPosition(277, 227);
         blinky.setScared(false);
         blinky.setActive();
         pinky.setImage("Sprites/Ghosts/Pinky/pinkyUp.png");
         pinky.setScared(false);
-        pinky.setInactive(277);
+        pinky.setInactive();
         inky.setImage("Sprites/Ghosts/Inky/inkyUp.png");
         inky.setScared(false);
-        inky.setInactive(237);
+        inky.setInactive();
         clyde.setImage("Sprites/Ghosts/Clyde/clydeUp.png");
         clyde.setScared(false);
-        clyde.setInactive(317);
+        clyde.setInactive();
         scaredCounter = -1;
     }
 
