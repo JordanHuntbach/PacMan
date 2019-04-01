@@ -1117,6 +1117,14 @@ public class Game extends Application {
         score = tempScore;
         lives = tempLives;
 
+        if (level < 5) {
+            // modeTimes = new int[] {7, 27, 34, 54, 59, 1092, 1093};
+            modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 60060, 60065}; // Multiply by 55 to get approximate seconds
+        } else {
+            // modeTimes = new int[] {5, 25, 30, 50, 55, 1092, 1093};
+            modeTimes = new int[] {275, 1375, 1650, 2750, 3025, 60060, 60065}; // Multiply by 55 to get approximate seconds
+        }
+
         // Start the game in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<Void>() {
             @Override
@@ -1469,7 +1477,7 @@ public class Game extends Application {
                 if (Math.abs(clyde.getPositionX() - pacX) + Math.abs(clyde.getPositionY() - pacY) > 160) {
                     target = new Position(pacX, pacY);
                 } else {
-                    target = new Position(27, 587);
+                    target = new Position(27, 627);
                 }
             }
             clyde.update(colour, target.getPositionX(),  target.getPositionY());
