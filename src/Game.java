@@ -230,7 +230,7 @@ public class Game extends Application {
                 if (trainWithGUI) {
                     guiSetup();
                 } else {
-                    // nn gui setup
+                    // TODO: nn gui setup
                 }
                 setUpNN();
             } else {
@@ -369,6 +369,10 @@ public class Game extends Application {
 
                 // When done, save the best genome to a file.
                 evaluator.saveBestGenome();
+
+                score = (int) evaluator.getHighestScore();
+
+                Platform.runLater(() -> finalNNScreen());
 
                 return null;
             }
@@ -520,7 +524,7 @@ public class Game extends Application {
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
             int previousScore = score;
 
-            if (frameCounter > 400) {
+            if (frameCounter > 500) {
                 return score;
             }
 
@@ -1070,12 +1074,9 @@ public class Game extends Application {
             // Move Pac-Man.
             updatePacman();
 
-            if (!pinky.isActive() && pinkyCounter == pinkyLimit) {
-                pinky.setActive();
-            } else if (!inky.isActive() && inkyCounter == inkyLimit) {
-                inky.setActive();
-            } else if (clyde.isActive() && clydeCounter == clydeLimit) {
-                clyde.setActive();
+            // Update each ghost.
+            if (useGhosts) {
+                updateGhostsWrapper();
             }
 
             // Eat pills.
@@ -1085,11 +1086,6 @@ public class Game extends Application {
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
                 Platform.runLater(this::nextLevel);
                 break;
-            }
-
-            // Update each ghost.
-            if (useGhosts) {
-                updateGhostsWrapper();
             }
 
             // If we aren't in a MCTS simulation / play-out, update the screen.
@@ -1317,6 +1313,31 @@ public class Game extends Application {
         }
     }
 
+    private void finalNNScreen() {
+        VBox vBox = new VBox();
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setSpacing(10);
+        vBox.setPadding(new Insets(25, 25, 25, 25));
+
+        Text sceneTitle = new Text("Training Completed");
+        sceneTitle.getStyleClass().add("gameOver");
+
+        Text scoreText = new Text("Best Score: " + score);
+        scoreText.getStyleClass().add("gameOver");
+
+        Button exitButton = new Button();
+        setButtonText(exitButton, "Return to Menu");
+        exitButton.setOnAction(event -> menu());
+
+        vBox.getChildren().addAll(sceneTitle, scoreText, exitButton);
+
+        vBox.setMargin(exitButton, new Insets(20, 0, 0, 0));
+
+        scene = new Scene(vBox, 592,720, Color.BLACK);
+        scene.getStylesheets().add("Styling/style.css");
+        mainStage.setScene(scene);
+    }
+
     private void trainingStats(int gen, int member, float highScore) {
         String text = "High Score: " + highScore;
         gc.setFill(Color.WHITE);
@@ -1362,6 +1383,14 @@ public class Game extends Application {
     }
 
     private void updateGhostsWrapper() {
+        if (!pinky.isActive() && pinkyCounter == pinkyLimit) {
+            pinky.setActive();
+        } else if (!inky.isActive() && inkyCounter == inkyLimit) {
+            inky.setActive();
+        } else if (clyde.isActive() && clydeCounter == clydeLimit) {
+            clyde.setActive();
+        }
+
         if (eatenCoolDown >= 240) {
             eatenCoolDown = 0;
             if (!pinky.isActive()) {

@@ -1,5 +1,5 @@
 Things that need doing:
-    After training, do something with the GUI.
+    Make a simpler NN training interface
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.

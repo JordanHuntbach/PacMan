@@ -24,6 +24,10 @@ public abstract class Evaluator {
 
     private Random random = new Random();
 
+    public float getHighestScore() {
+        return highestScore;
+    }
+
     private float highestScore = 0;
     private Genome fittestGenome = null;
     private int stagnation = 0;
