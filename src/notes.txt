@@ -1,6 +1,5 @@
 Things that need doing:
     After training, do something with the GUI.
-    Make sure that game state has all the necessary variables.
 
 Things to experiment with:
     Adding a negative reward when a ghost eats pacman.
