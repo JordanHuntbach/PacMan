@@ -807,6 +807,53 @@ public class Game extends Application {
         inputs[access++] = canMove("DOWN") ? 1 : -1;
         inputs[access++] = canMove("LEFT") ? 1 : -1;
         inputs[access] = canMove("RIGHT") ? 1 : -1;
+
+
+
+
+        int viewHight = 17;
+        int viewWidth = 13;
+
+        char[][] mapView = new char[viewHight][viewWidth];
+
+        int pacmanIndexX = (int) pacman.positionX / 20;
+        int pacmanIndexY = (int) pacman.positionY / 20;
+
+        for (int i = 0; i < viewHight; i++) {
+            int mapPointerY = pacmanIndexY - (viewHight / 2) + i;
+
+            if (mapPointerY < 0 || mapPointerY >= map.length) {
+
+            } else {
+                for (int j = 0; j < viewWidth; j++) {
+                    int mapPointerX = pacmanIndexX - (viewWidth / 2) + j;
+
+                    if (mapPointerX < 0 || mapPointerX >= map[0].length) {
+                        mapView[i][j] = ' ';
+                    } else if (map[mapPointerY][mapPointerX] > 2) {
+                        mapView[i][j] = 'X';
+                    } else if (map[mapPointerY][mapPointerX] == 1) {
+                        mapView[i][j] = '.';
+                    } else if (map[mapPointerY][mapPointerX] == 2) {
+                        mapView[i][j] = 'O';
+                    }
+                }
+            }
+        }
+
+        mapView[viewHight / 2][viewWidth / 2] = 'P';
+
+        viewMap(mapView);
+    }
+
+    private void viewMap(char[][] array) {
+        for (char[] row : array) {
+            for (char element : row) {
+                System.out.print(element + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
     private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs) {
