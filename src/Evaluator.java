@@ -2,7 +2,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public abstract class Evaluator {
+abstract class Evaluator {
     private int populationSize;
 
     private List<Genome> genomes;

@@ -11,3 +11,8 @@ Notes:
     After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Try 5 next.
     Managed to get a high score of 2810 after 100 generations.
 
+
+Directions can move in
+Distance to nearest wall
+Are there dots in that path
+Are there ghosts in that path

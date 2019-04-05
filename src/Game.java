@@ -157,12 +157,12 @@ public class Game extends Application {
     // Neural network stuff.
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
-    private float [] inputs = new float[32];
+    private float [] inputs = new float[16];
 
     // Training stuff.
     private boolean trainWithGUI = true;
-    private int populationSize = 100;
-    private int generations = 100;
+    private int populationSize = 50;
+    private int generations = 50;
 
     // Game settings.
     private boolean ai = false;
@@ -385,91 +385,52 @@ public class Game extends Application {
     // Create a minimal genome to initialise the NEAT algorithm.
     private Genome newGenome() {
         /* Inputs are:
-           Distance / direction to each ghost
-           Is ghost edible
-           Is ghost moving towards Pac-Man
-           Direction / distance to closest pill
-           Direction / distance to closest powerPill
-           xPosition + yPosition
-           Directions can move in
+            Directions can move in
+            Distance to nearest wall
+            Are there dots in that path
+            Are there ghosts in that path
 
            Outputs are:
-           Left, Right, Up, Down. Move in the direction with the greatest value.
+            Left, Right, Up, Down. Move in the direction with the greatest value.
           */
 
         Genome genome = new Genome();
 
-        NodeGene blinkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene blinkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene blinkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene blinkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene blinkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(blinkyActive, nodeInnovation);
-        genome.addNodeGene(blinkyDistance, nodeInnovation);
-        genome.addNodeGene(blinkyUpOrDown, nodeInnovation);
-        genome.addNodeGene(blinkyLeftOrRight, nodeInnovation);
-        genome.addNodeGene(blinkyEdible, nodeInnovation);
+        NodeGene canTurnUp = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(canTurnUp, nodeInnovation);
+        NodeGene canTurnDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(canTurnDown, nodeInnovation);
+        NodeGene canTurnLeft = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(canTurnLeft, nodeInnovation);
+        NodeGene canTurnRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(canTurnRight, nodeInnovation);
 
-        NodeGene pinkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene pinkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene pinkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene pinkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene pinkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(pinkyActive, nodeInnovation);
-        genome.addNodeGene(pinkyDistance, nodeInnovation);
-        genome.addNodeGene(pinkyUpOrDown, nodeInnovation);
-        genome.addNodeGene(pinkyLeftOrRight, nodeInnovation);
-        genome.addNodeGene(pinkyEdible, nodeInnovation);
+        NodeGene upDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(upDistance, nodeInnovation);
+        NodeGene downDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(downDistance, nodeInnovation);
+        NodeGene leftDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(leftDistance, nodeInnovation);
+        NodeGene rightDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(rightDistance, nodeInnovation);
 
-        NodeGene inkyActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene inkyDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene inkyUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene inkyLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene inkyEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(inkyActive, nodeInnovation);
-        genome.addNodeGene(inkyDistance, nodeInnovation);
-        genome.addNodeGene(inkyUpOrDown, nodeInnovation);
-        genome.addNodeGene(inkyLeftOrRight, nodeInnovation);
-        genome.addNodeGene(inkyEdible, nodeInnovation);
+        NodeGene upDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(upDots, nodeInnovation);
+        NodeGene downDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(downDots, nodeInnovation);
+        NodeGene leftDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(leftDots, nodeInnovation);
+        NodeGene rightDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(rightDots, nodeInnovation);
 
-        NodeGene clydeActive = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene clydeDistance = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene clydeUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene clydeLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene clydeEdible = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(clydeActive, nodeInnovation);
-        genome.addNodeGene(clydeDistance, nodeInnovation);
-        genome.addNodeGene(clydeUpOrDown, nodeInnovation);
-        genome.addNodeGene(clydeLeftOrRight, nodeInnovation);
-        genome.addNodeGene(clydeEdible, nodeInnovation);
-
-        NodeGene distanceToClosestPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene closestPillUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene closestPillLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(distanceToClosestPill, nodeInnovation);
-        genome.addNodeGene(closestPillUpOrDown, nodeInnovation);
-        genome.addNodeGene(closestPillLeftOrRight, nodeInnovation);
-
-        NodeGene distanceToClosestPowerPill = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene closestPowerPillUpOrDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene closestPowerPillLeftOrRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(distanceToClosestPowerPill, nodeInnovation);
-        genome.addNodeGene(closestPowerPillUpOrDown, nodeInnovation);
-        genome.addNodeGene(closestPowerPillLeftOrRight, nodeInnovation);
-
-        NodeGene xPosition = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene yPosition = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(xPosition, nodeInnovation);
-        genome.addNodeGene(yPosition, nodeInnovation);
-
-        NodeGene canMoveUp = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene canMoveDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene canMoveLeft = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        NodeGene canMoveRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(canMoveUp, nodeInnovation);
-        genome.addNodeGene(canMoveDown, nodeInnovation);
-        genome.addNodeGene(canMoveLeft, nodeInnovation);
-        genome.addNodeGene(canMoveRight, nodeInnovation);
+        NodeGene upGhosts = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(upGhosts, nodeInnovation);
+        NodeGene downGhosts = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(downGhosts, nodeInnovation);
+        NodeGene leftGhosts = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(leftGhosts, nodeInnovation);
+        NodeGene rightGhosts = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+        genome.addNodeGene(rightGhosts, nodeInnovation);
 
         NodeGene up = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene down = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
@@ -780,6 +741,15 @@ public class Game extends Application {
         // Pointer to current position in the input array.
         int access = 0;
 
+        // Valid moves
+        inputs[access++] = canMove("UP") ? 1 : -1;
+        inputs[access++] = canMove("DOWN") ? 1 : -1;
+        inputs[access++] = canMove("LEFT") ? 1 : -1;
+        inputs[access++] = canMove("RIGHT") ? 1 : -1;
+
+        // Distance to nearest wall/ghost
+
+
         if (useGhosts) {
             for (Ghost ghost : ghosts) {
                 inputs[access++] = ghost.isActive() ? 1 : -1;       // Is ghost active.
@@ -802,11 +772,6 @@ public class Game extends Application {
         inputs[access++] = 1f - ((float) pacman.getPositionX() - 27) / 250f;
         inputs[access++] = 1f - ((float) pacman.getPositionY() - 27) / 280f;
 
-        // Valid moves
-        inputs[access++] = canMove("UP") ? 1 : -1;
-        inputs[access++] = canMove("DOWN") ? 1 : -1;
-        inputs[access++] = canMove("LEFT") ? 1 : -1;
-        inputs[access] = canMove("RIGHT") ? 1 : -1;
     }
 
     private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs) {
