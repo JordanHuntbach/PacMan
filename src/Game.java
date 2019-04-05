@@ -161,8 +161,8 @@ public class Game extends Application {
 
     // Training stuff.
     private boolean trainWithGUI = true;
-    private int populationSize = 100;
-    private int generations = 100;
+    private int populationSize = 1;
+    private int generations = 1;
 
     // Game settings.
     private boolean ai = false;
@@ -812,7 +812,7 @@ public class Game extends Application {
 
 
         int viewHight = 17;
-        int viewWidth = 13;
+        int viewWidth = 17;
 
         char[][] mapView = new char[viewHight][viewWidth];
 
@@ -823,7 +823,9 @@ public class Game extends Application {
             int mapPointerY = pacmanIndexY - (viewHight / 2) + i;
 
             if (mapPointerY < 0 || mapPointerY >= map.length) {
-
+                for (int j = 0; j < viewWidth; j++) {
+                    mapView[i][j] = ' ';
+                }
             } else {
                 for (int j = 0; j < viewWidth; j++) {
                     int mapPointerX = pacmanIndexX - (viewWidth / 2) + j;
@@ -836,7 +838,26 @@ public class Game extends Application {
                         mapView[i][j] = '.';
                     } else if (map[mapPointerY][mapPointerX] == 2) {
                         mapView[i][j] = 'O';
+                    } else if (map[mapPointerY][mapPointerX] == 0) {
+                        mapView[i][j] = ' ';
                     }
+                }
+            }
+        }
+
+        int lowX = pacmanIndexX - (viewWidth / 2);
+        int highX = lowX + viewWidth;
+
+        int lowY = pacmanIndexY - (viewHight / 2);
+        int highY = lowY + viewHight;
+
+        for (Ghost ghost : ghosts) {
+            int ghostIndexX = (int) ghost.positionX / 20;
+            int ghostIndexY = (int) ghost.positionY / 20;
+
+            if (lowY <= ghostIndexY && ghostIndexY <= highY) {
+                if (lowX <= ghostIndexX && ghostIndexX <= highX) {
+                    mapView[ghostIndexY - lowY][ghostIndexX - lowX] = 'G';
                 }
             }
         }
