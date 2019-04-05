@@ -741,10 +741,10 @@ public class Game extends Application {
 
         if (useGhosts) {
             // Initialise ghosts.
-            blinky = new Ghost("blinky", new Position(527, 0));
-            pinky = new Ghost("pinky", new Position(47, 0));
-            inky = new Ghost("inky", new Position(547, 627));
-            clyde = new Ghost("clyde", new Position(27, 627));
+            blinky = new Ghost("blinky");
+            pinky = new Ghost("pinky");
+            inky = new Ghost("inky");
+            clyde = new Ghost("clyde");
 
             ghosts.clear();
             ghosts.add(blinky);
@@ -1553,19 +1553,12 @@ public class Game extends Application {
         for (Ghost ghost : ghosts) {
             ghost.reset();
         }
-        blinky.setImage("Sprites/Ghosts/Blinky/blinkyUp.png");
-        blinky.setPosition(277, 227);
-        blinky.setScared(false);
+
         blinky.setActive();
-        pinky.setImage("Sprites/Ghosts/Pinky/pinkyUp.png");
-        pinky.setScared(false);
         pinky.setInactive();
-        inky.setImage("Sprites/Ghosts/Inky/inkyUp.png");
-        inky.setScared(false);
         inky.setInactive();
-        clyde.setImage("Sprites/Ghosts/Clyde/clydeUp.png");
-        clyde.setScared(false);
         clyde.setInactive();
+
         scaredCounter = -1;
     }
 

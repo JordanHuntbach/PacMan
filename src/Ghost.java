@@ -33,27 +33,30 @@ public class Ghost extends Sprite {
 
     private Position home;
 
-    Ghost(String ghostName, Position scatterTarget) {
+    Ghost(String ghostName) {
         filepath = "Sprites/Ghosts/" + ghostName.substring(0, 1).toUpperCase() + ghostName.substring(1) + "/" + ghostName;
-        this.scatterTarget = scatterTarget;
         switch (ghostName) {
             case "blinky":
                 home = new Position(277, 227);
+                scatterTarget = new Position(527, 0);
                 setPosition(home);
                 this.name = Ghost.ghostName.BLINKY;
                 break;
             case "pinky":
                 home = new Position(277, 287);
+                scatterTarget = new Position(47, 0);
                 setPosition(home);
                 this.name = Ghost.ghostName.PINKY;
                 break;
             case "inky":
                 home = new Position(237, 287);
+                scatterTarget = new Position(547, 627);
                 setPosition(home);
                 this.name = Ghost.ghostName.INKY;
                 break;
             case "clyde":
                 home = new Position(317, 287);
+                scatterTarget = new Position(27, 627);
                 setPosition(home);
                 this.name = Ghost.ghostName.CLYDE;
                 break;
