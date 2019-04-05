@@ -1132,6 +1132,7 @@ public class Game extends Application {
 
         if (level < 5) {
             if (level == 2) {
+                pinkyLimit = 0;
                 inkyLimit = 0;
                 clydeLimit = 50;
             } else if (level == 3) {
@@ -1385,9 +1386,11 @@ public class Game extends Application {
     private void updateGhostsWrapper() {
         if (!pinky.isActive() && pinkyCounter == pinkyLimit) {
             pinky.setActive();
-        } else if (!inky.isActive() && inkyCounter == inkyLimit) {
+        }
+        if (!inky.isActive() && inkyCounter == inkyLimit) {
             inky.setActive();
-        } else if (clyde.isActive() && clydeCounter == clydeLimit) {
+        }
+        if (clyde.isActive() && clydeCounter == clydeLimit) {
             clyde.setActive();
         }
 
