@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class Genome {
+class Genome {
 
     private float fitness;
 
@@ -30,7 +30,7 @@ public class Genome {
         }
     }
 
-    public void overwriteConnections(List<ConnectionGene> connectionGenes) {
+    void overwriteConnections(List<ConnectionGene> connectionGenes) {
         List<Integer> inputNodes = new ArrayList<>();
         List<Integer> outputNodes = new ArrayList<>();
         List<Integer> hiddenNodes = new ArrayList<>();
@@ -74,28 +74,28 @@ public class Genome {
         }
     }
 
-    public void addConnectionGene(ConnectionGene connectionGene, Counter innovation) {
+    void addConnectionGene(ConnectionGene connectionGene, Counter innovation) {
         connections.put(connectionGene.getInnovation(), connectionGene);
         innovation.addConnectionGene(connectionGene);
     }
 
-    public Map<Integer, ConnectionGene> getConnections() {
+    Map<Integer, ConnectionGene> getConnections() {
         return connections;
     }
 
-    public void addNodeGene(NodeGene nodeGene, Counter innovation) {
+    void addNodeGene(NodeGene nodeGene, Counter innovation) {
         nodes.put(nodeGene.getId(), nodeGene);
         innovation.addNodeGene(nodeGene);
     }
 
-    public Map<Integer, NodeGene> getNodes() {
+    Map<Integer, NodeGene> getNodes() {
         return nodes;
     }
 
-    public void addConnectionMutation(Counter innovation, int maxAttempts) {
+    void addConnectionMutation(Counter innovation) {
         int tries = 0;
         boolean success = false;
-        while (!success && tries < maxAttempts) {
+        while (!success && tries < 50) {
             List<NodeGene> nodesList = new ArrayList<>(nodes.values());
 
             NodeGene node1 = nodesList.get(random.nextInt(nodesList.size()));
@@ -153,8 +153,8 @@ public class Genome {
                 }
             }
 
-            if(connectionImpossible) {
-                tries ++;
+            if (connectionImpossible) {
+                tries++;
                 continue;
             }
 
@@ -169,8 +169,8 @@ public class Genome {
                 }
             }
 
-            if(connectionExists) {
-                tries ++;
+            if (connectionExists) {
+                tries++;
             } else {
                 int innovationNumber = -1;
 
@@ -196,7 +196,7 @@ public class Genome {
         }
     }
 
-    public void mutation() {
+    void mutation() {
         for (ConnectionGene connection : connections.values()) {
             float PROBABILITY_PERTURBING = 0.90f;
             if (random.nextFloat() < PROBABILITY_PERTURBING) {
@@ -207,7 +207,7 @@ public class Genome {
         }
     }
 
-    public void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
+    void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
         List<ConnectionGene> connectionsList = new ArrayList<>(connections.values());
         int index = random.nextInt(connectionsList.size());
         ConnectionGene connection = connectionsList.get(index);
@@ -273,7 +273,7 @@ public class Genome {
     }
 
     // Note that parent1 must be the fitter parent.
-    public static Genome crossover(Genome parent1, Genome parent2, Counter nodeInnovation, Counter counterInnovation) {
+    static Genome crossover(Genome parent1, Genome parent2, Counter nodeInnovation, Counter counterInnovation) {
         Genome child = new Genome();
 
         for (NodeGene parent1Node : parent1.getNodes().values()) {
@@ -299,7 +299,7 @@ public class Genome {
         return child;
     }
 
-    public static float compatibilityDistance(Genome genome1, Genome genome2, float c1, float c2, float c3) {
+    static float compatibilityDistance(Genome genome1, Genome genome2, float c1, float c2, float c3) {
         int disjointGenes = 0;
         int matchingGenes = 0;
         float weightDifference = 0;
@@ -318,14 +318,14 @@ public class Genome {
             NodeGene node2 = genome2.getNodes().get(i);
 
             if (node1 == null && node2 != null) {
-                disjointGenes ++;
+                disjointGenes++;
             } else if (node2 == null && node1 != null) {
-                disjointGenes ++;
+                disjointGenes++;
             }
         }
         for (int i = lower; i <= higher; i++) {
             if (genome1.getNodes().get(i) != null || genome2.getNodes().get(i) != null) {
-                excessGenes ++;
+                excessGenes++;
             }
         }
 
@@ -342,17 +342,17 @@ public class Genome {
             ConnectionGene connection2 = genome2.getConnections().get(i);
 
             if (connection1 == null && connection2 != null) {
-                disjointGenes ++;
+                disjointGenes++;
             } else if (connection2 == null && connection1 != null) {
-                disjointGenes ++;
+                disjointGenes++;
             } else if (connection1 != null) {
-                matchingGenes ++;
+                matchingGenes++;
                 weightDifference += Math.abs(connection1.getWeight() - connection2.getWeight());
             }
         }
         for (int i = lower; i <= higher; i++) {
             if (genome1.getConnections().get(i) != null || genome2.getConnections().get(i) != null) {
-                excessGenes ++;
+                excessGenes++;
             }
         }
 
@@ -373,11 +373,11 @@ public class Genome {
         return list;
     }
 
-    public float getFitness() {
+    float getFitness() {
         return fitness;
     }
 
-    public void setFitness(float fitness) {
+    void setFitness(float fitness) {
         this.fitness = fitness;
     }
 }

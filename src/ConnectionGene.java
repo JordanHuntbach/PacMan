@@ -22,35 +22,35 @@ public class ConnectionGene {
         this.innovation = gene.innovation;
     }
 
-    public int getInNode() {
+    int getInNode() {
         return inNode;
     }
 
-    public int getOutNode() {
+    int getOutNode() {
         return outNode;
     }
 
-    public float getWeight() {
+    float getWeight() {
         return weight;
     }
 
-    public void setWeight(float weight) {
+    void setWeight(float weight) {
         this.weight = weight;
     }
 
-    public boolean isExpressed() {
+    boolean isExpressed() {
         return expressed;
     }
 
-    public int getInnovation() {
+    int getInnovation() {
         return innovation;
     }
 
-    public void setExpressed(boolean expressed) {
+    void setExpressed(boolean expressed) {
         this.expressed = expressed;
     }
 
-    public boolean sameConnection(ConnectionGene connectionGene) {
+    boolean sameConnection(ConnectionGene connectionGene) {
         return connectionGene.getInNode() == this.inNode && connectionGene.getOutNode() == this.outNode;
     }
 

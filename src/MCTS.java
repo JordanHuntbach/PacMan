@@ -3,10 +3,10 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
-public class MCTS {
+class MCTS {
 
-    public static int ROUNDS = 20;
-    public static int MAX_MOVES = 20;
+    static int ROUNDS = 20;
+    static int MAX_MOVES = 20;
 
     private MCTSTreeNode root;
 
@@ -33,7 +33,7 @@ public class MCTS {
         root.expandChildren();
     }
 
-    public void selection() {
+    void selection() {
         directions.clear();
         nodesSelected.clear();
 
@@ -61,7 +61,7 @@ public class MCTS {
                 }
             }
             if (next == null) {
-                selected.setLeadsToDeath(true);
+                selected.setLeadsToDeath();
                 if (selected.isRoot()) {
                     leafNode = root;
                     return;
@@ -80,7 +80,7 @@ public class MCTS {
         leafNode = selected;
     }
 
-    public void expansion() {
+    void expansion() {
         leafNode.expandChildren();
 
         MCTSTreeNode child = getRandomChild(leafNode);
@@ -95,19 +95,19 @@ public class MCTS {
         return nodes.get(rand.nextInt(nodes.size()));
     }
 
-    public void backPropagation(int score) {
+    void backPropagation(int score) {
         notInPlayout = true;
 
         if (directions.size() != 0) {
             leafNode = nodesSelected.removeFirst();
-            leafNode.setLeadsToDeath(true);
+            leafNode.setLeadsToDeath();
         }
 
         leafNode.updateStats(score);
 
     }
 
-    public String nextDirection() {
+    String nextDirection() {
         System.out.println("Get next direction.");
         System.out.println(directions);
         if (directions.size() == 0) {
@@ -119,7 +119,7 @@ public class MCTS {
         }
     }
 
-    public String evaluateTree() {
+    String evaluateTree() {
         MCTSTreeNode best = null;
         double bestScore = 0;
         for (MCTSTreeNode child : root.getChildren()) {
@@ -146,11 +146,11 @@ public class MCTS {
         }
     }
 
-    public boolean notInPlayout() {
+    boolean notInPlayout() {
         return notInPlayout;
     }
 
-    public void setInPlayout(boolean inPlayout) {
+    void setInPlayout(boolean inPlayout) {
         this.notInPlayout = !inPlayout;
     }
 }

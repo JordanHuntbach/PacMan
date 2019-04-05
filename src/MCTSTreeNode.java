@@ -22,7 +22,7 @@ class MCTSTreeNode {
         }
     }
 
-    public void expandChildren() {
+    void expandChildren() {
         List<Position> neighbours = position.getNeighbours();
         for (Position neighbour : neighbours) {
             MCTSTreeNode child = new MCTSTreeNode(this, neighbour);
@@ -30,15 +30,15 @@ class MCTSTreeNode {
         }
     }
 
-    public List<MCTSTreeNode> getChildren() {
+    List<MCTSTreeNode> getChildren() {
         return children;
     }
 
-    public boolean isLeaf() {
+    boolean isLeaf() {
         return children.isEmpty();
     }
 
-    public void updateStats(int score) {
+    void updateStats(int score) {
         double temp = averageScore * visitCount;
         visitCount += 1;
         temp += score;
@@ -53,35 +53,35 @@ class MCTSTreeNode {
         }
     }
 
-    public boolean isRoot() {
+    boolean isRoot() {
         return root;
     }
 
-    public MCTSTreeNode getParentNode() {
+    MCTSTreeNode getParentNode() {
         return parentNode;
     }
 
-    public double getAverageScore(){
+    double getAverageScore(){
         return averageScore;
     }
 
-    public double getMaxScore(){
+    double getMaxScore(){
         return maxScore;
     }
 
-    public double getVisitCount(){
+    double getVisitCount(){
         return visitCount;
     }
 
-    public Position getPosition() {
+    Position getPosition() {
         return position;
     }
 
-    public boolean leadsToDeath() {
+    boolean leadsToDeath() {
         return leadsToDeath;
     }
 
-    public void setLeadsToDeath(boolean leadsToDeath) {
-        this.leadsToDeath = leadsToDeath;
+    void setLeadsToDeath() {
+        this.leadsToDeath = true;
     }
 }

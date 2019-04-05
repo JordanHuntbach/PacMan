@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class State {
+class State {
     private Position pacmanPosition;
     private ArrayList<Sprite> pillsList;
     private ArrayList<Sprite> powerPillsList;
@@ -44,79 +44,79 @@ public class State {
         this.currentMode = game.getCurrentMode();
     }
 
-    public Position getPacmanPosition() {
+    Position getPacmanPosition() {
         return pacmanPosition;
     }
 
-    public ArrayList<Sprite> getPillsList() {
+    ArrayList<Sprite> getPillsList() {
         return pillsList;
     }
 
-    public ArrayList<Sprite> getPowerPillsList() {
+    ArrayList<Sprite> getPowerPillsList() {
         return powerPillsList;
     }
 
-    public int getScore() {
+    int getScore() {
         return score;
     }
 
-    public Ghost getBlinky() {
+    Ghost getBlinky() {
         return blinky;
     }
 
-    public Ghost getPinky() {
+    Ghost getPinky() {
         return pinky;
     }
 
-    public Ghost getInky() {
+    Ghost getInky() {
         return inky;
     }
 
-    public Ghost getClyde() {
+    Ghost getClyde() {
         return clyde;
     }
 
-    public int getGhostsEaten() {
+    int getGhostsEaten() {
         return ghostsEaten;
     }
 
-    public int getPinkyCounter() {
+    int getPinkyCounter() {
         return pinkyCounter;
     }
 
-    public int getInkyCounter() {
+    int getInkyCounter() {
         return inkyCounter;
     }
 
-    public int getClydeCounter() {
+    int getClydeCounter() {
         return clydeCounter;
     }
 
-    public int getEatenCoolDown() {
+    int getEatenCoolDown() {
         return eatenCoolDown;
     }
 
-    public int getScaredCounter() {
+    int getScaredCounter() {
         return scaredCounter;
     }
 
-    public int getModeCounter() {
+    int getModeCounter() {
         return modeCounter;
     }
 
-    public int getCurrentMode() {
+    int getCurrentMode() {
         return currentMode;
     }
 
-    public int getPinkyLimit() {
+    int getPinkyLimit() {
         return pinkyLimit;
     }
 
-    public int getInkyLimit() {
+    int getInkyLimit() {
         return inkyLimit;
     }
 
-    public int getClydeLimit() {
+    int getClydeLimit() {
         return clydeLimit;
     }
 }

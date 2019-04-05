@@ -130,7 +130,6 @@ public class Game extends Application {
     private int eatenCoolDown;
     private int scaredCounter;
 
-
     // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
     // private int[] modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
     private int[] modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
@@ -158,14 +157,16 @@ public class Game extends Application {
     // Neural network stuff.
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
-    private int populationSize = 10;
-    private int generations = 1;
     private float [] inputs = new float[32];
+
+    // Training stuff.
+    private boolean trainWithGUI = true;
+    private int populationSize = 100;
+    private int generations = 100;
 
     // Game settings.
     private boolean ai = false;
     private boolean training = false;
-    private boolean trainWithGUI = true;
     private boolean useMCTS = true;
     private boolean useNN = true;
 
@@ -201,7 +202,7 @@ public class Game extends Application {
 
         Image image = new Image("Styling/menu.png", true);
         ImageView imageView = new ImageView(image);
-        mainMenu.setMargin(imageView, new Insets(100, 0, 50, 0));
+        VBox.setMargin(imageView, new Insets(100, 0, 50, 0));
         mainMenu.getChildren().add(imageView);
 
         ToggleGroup group = new ToggleGroup();
@@ -229,9 +230,8 @@ public class Game extends Application {
             if (training) {
                 if (trainWithGUI) {
                     guiSetup();
-                } else {
-                    // TODO: nn gui setup
                 }
+                // TODO: nn gui setup
                 setUpNN();
             } else {
                 newGame();
@@ -252,7 +252,7 @@ public class Game extends Application {
         Text text = new Text();
         text.setText("Created by Jordan Huntbach for a dissertation on 'Machine Learning for Pac-Man'\n2019");
         text.getStyleClass().add("info");
-        mainMenu.setMargin(text, new Insets(50, 0, 0, 0));
+        VBox.setMargin(text, new Insets(50, 0, 0, 0));
 
         mainMenu.getChildren().add(text);
 
@@ -272,7 +272,7 @@ public class Game extends Application {
         Text sceneTitle = new Text("OPTIONS");
         sceneTitle.getStyleClass().add("title");
         optionsMenu.getChildren().add(sceneTitle);
-        optionsMenu.setMargin(sceneTitle, new Insets(0, 0, 100, 0));
+        VBox.setMargin(sceneTitle, new Insets(0, 0, 100, 0));
 
         CheckBox mctsCheck = new CheckBox("Tree Search");
         CheckBox networkCheck = new CheckBox("Neural Network");
@@ -318,7 +318,7 @@ public class Game extends Application {
         ghosts.setSelected(true);
 
         optionsMenu.getChildren().addAll(game_options, dots, energizers, ghosts);
-        optionsMenu.setMargin(game_options, new Insets(20, 0, 0, 0));
+        VBox.setMargin(game_options, new Insets(20, 0, 0, 0));
 
         Button backButton = new Button();
         backButton.setOnAction(event -> mainStage.setScene(scene));
@@ -329,7 +329,7 @@ public class Game extends Application {
         setButtonText(exitButton, "quit");
 
         optionsMenu.getChildren().addAll(backButton, exitButton);
-        optionsMenu.setMargin(backButton, new Insets(50, 0, 0, 0));
+        VBox.setMargin(backButton, new Insets(50, 0, 0, 0));
 
         return optionsMenu;
     }
@@ -356,7 +356,7 @@ public class Game extends Application {
         evaluator.initialMutate();
 
         // Create a task which can be run in a non-GUI thread, to prevent blocking.
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
 
@@ -542,14 +542,12 @@ public class Game extends Application {
             // Eat any pills.
             eatPills();
 
-            if (!useGhosts) {
-                if (previousScore == score) {
-                    // Update counter if we haven't eaten.
-                    frameCounter++;
-                } else {
-                    // Reset counter if we have eaten.
-                    frameCounter = 0;
-                }
+            if (previousScore == score) {
+                // Update counter if we haven't eaten.
+                frameCounter++;
+            } else {
+                // Reset counter if we have eaten.
+                frameCounter = 0;
             }
 
             // Update GUI if necessary.
@@ -626,13 +624,7 @@ public class Game extends Application {
         scene = new Scene(root, 592, 720, Color.BLACK);
         mainStage.setScene(scene);
 
-        canvas = new Canvas(592,720);
-        root.getChildren().add(canvas);
-
-        gc = canvas.getGraphicsContext2D();
-        gc.setFont(Font.font("Helvetica", FontWeight.BOLD,24));
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(1);
+        refreshCanvas();
 
         // If the game is not being controlled by AI, register the keys to change direction.
         if (!ai) {
@@ -1045,7 +1037,7 @@ public class Game extends Application {
         }
 
         // Start the game in a non-GUI thread, to prevent blocking.
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
                 gameLoop();
@@ -1146,7 +1138,7 @@ public class Game extends Application {
         }
 
         // Start the game in a non-GUI thread, to prevent blocking.
-        Task<Void> task = new Task<Void>() {
+        Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
                 gameLoop();
@@ -1332,7 +1324,7 @@ public class Game extends Application {
 
         vBox.getChildren().addAll(sceneTitle, scoreText, exitButton);
 
-        vBox.setMargin(exitButton, new Insets(20, 0, 0, 0));
+        VBox.setMargin(exitButton, new Insets(20, 0, 0, 0));
 
         scene = new Scene(vBox, 592,720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
@@ -1608,7 +1600,7 @@ public class Game extends Application {
 
         vBox.getChildren().addAll(sceneTitle, scoreText, newGameButton, exitButton);
 
-        vBox.setMargin(newGameButton, new Insets(20, 0, 0, 0));
+        VBox.setMargin(newGameButton, new Insets(20, 0, 0, 0));
 
         scene = new Scene(vBox, 592,720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
@@ -1618,7 +1610,7 @@ public class Game extends Application {
     // Called when a ghost is eaten.
     private void ghostEaten(Ghost ghost) {
         ghost.setScared(false);
-        ghost.setEyes(true);
+        ghost.setEyes();
 
         adjustPosition(ghost);
 
@@ -1658,79 +1650,79 @@ public class Game extends Application {
         ghosts.add(clyde);
     }
 
-    public Sprite getPacman() {
+    Sprite getPacman() {
         return pacman;
     }
 
-    public ArrayList<Sprite> getPillsList() {
+    ArrayList<Sprite> getPillsList() {
         return pillsList;
     }
 
-    public ArrayList<Sprite> getPowerPillsList() {
+    ArrayList<Sprite> getPowerPillsList() {
         return powerPillsList;
     }
 
-    public int getScore() {
+    int getScore() {
         return score;
     }
 
-    public Ghost getBlinky() {
+    Ghost getBlinky() {
         return blinky;
     }
 
-    public Ghost getPinky() {
+    Ghost getPinky() {
         return pinky;
     }
 
-    public Ghost getInky() {
+    Ghost getInky() {
         return inky;
     }
 
-    public Ghost getClyde() {
+    Ghost getClyde() {
         return clyde;
     }
 
-    public int getGhostsEaten() {
+    int getGhostsEaten() {
         return ghostsEaten;
     }
 
-    public int getPinkyCounter() {
+    int getPinkyCounter() {
         return pinkyCounter;
     }
 
-    public int getInkyCounter() {
+    int getInkyCounter() {
         return inkyCounter;
     }
 
-    public int getClydeCounter() {
+    int getClydeCounter() {
         return clydeCounter;
     }
 
-    public int getEatenCoolDown() {
+    int getEatenCoolDown() {
         return eatenCoolDown;
     }
 
-    public int getScaredCounter() {
+    int getScaredCounter() {
         return scaredCounter;
     }
 
-    public int getCurrentMode() {
+    int getCurrentMode() {
         return currentMode;
     }
 
-    public int getModeCounter() {
+    int getModeCounter() {
         return modeCounter;
     }
 
-    public int getPinkyLimit() {
+    int getPinkyLimit() {
         return pinkyLimit;
     }
 
-    public int getInkyLimit() {
+    int getInkyLimit() {
         return inkyLimit;
     }
 
-    public int getClydeLimit() {
+    int getClydeLimit() {
         return clydeLimit;
     }
 }

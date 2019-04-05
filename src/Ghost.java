@@ -83,6 +83,7 @@ public class Ghost extends Sprite {
         this.exitingDoor = ghost.exitingDoor;
         this.enteringDoor = ghost.enteringDoor;
         this.home = ghost.home;
+        this.name = ghost.name;
     }
 
     private int forwards = 0; // 0 = UP, 1 = DOWN, 2 = LEFT, 3 = RIGHT
@@ -91,7 +92,7 @@ public class Ghost extends Sprite {
 
     private static ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
 
-    public void reverse() {
+    void reverse() {
         if (eyes || !active) {
             return;
         }
@@ -119,7 +120,7 @@ public class Ghost extends Sprite {
         forwards = temp;
     }
 
-    public void reset() {
+    void reset() {
         this.setPosition(home);
 
         spooked = false;
@@ -136,11 +137,11 @@ public class Ghost extends Sprite {
         backwardsString = "";
     }
 
-    public void setScatter(boolean scatter){
+    void setScatter(boolean scatter){
         this.scatter = scatter;
     }
 
-    public void update(String colour, double targetX, double targetY) {
+    void update(String colour, double targetX, double targetY) {
         if (!active) {
             return;
         }
@@ -210,8 +211,8 @@ public class Ghost extends Sprite {
 
             if (chase && !spooked) {
 //                // A* Search - replaced with arcade search method
-//                Position startNode = search.getNearestPosition(junction.getPositionX(), junction.getPositionY());
-//                Position targetNode = search.getNearestPosition(targetX, targetY);
+//                Position startNode = Position.getNearestPosition(junction.getPositionX(), junction.getPositionY());
+//                Position targetNode = Position.getNearestPosition(targetX, targetY);
 //                Position targetPosition = new Position(targetX, targetY);
 //                List<Position> path = search.findPath(startNode, targetNode);
 //                if (path == null || path.size() == 0) {
@@ -285,6 +286,7 @@ public class Ghost extends Sprite {
                 }
             }
 
+            assert nextDirection != null;
             switch (nextDirection) {
                 case "Up":
                     forwards = 0;
@@ -344,20 +346,20 @@ public class Ghost extends Sprite {
         positionY += velocityY;
     }
 
-    public boolean isActive() {
+    boolean isActive() {
         return active;
     }
 
-    public void setActive() {
+    void setActive() {
         active = true;
         exitingDoor = true;
     }
 
-    public void setInactive() {
+    void setInactive() {
         active = false;
     }
 
-    public void setScared(boolean scared) {
+    void setScared(boolean scared) {
         if (scared) {
             SPEED = 1;
             this.setImage("Sprites/Ghosts/scaredBlue.png");
@@ -420,23 +422,20 @@ public class Ghost extends Sprite {
         return new Rectangle2D(positionX + 10, positionY + 10, width - 20, height - 20);
     }
 
-    public boolean canCatch(Sprite s) {
+    boolean canCatch(Sprite s) {
         return s.eatBoundary().intersects(this.catchBoundary());
     }
 
-    public boolean isSpooked(){
+    boolean isSpooked(){
         return spooked;
     }
 
-    public boolean isEyes() {
+    boolean isEyes() {
         return eyes;
     }
 
-    public void setEyes(boolean eyes) {
-        this.eyes = eyes;
+    void setEyes() {
+        this.eyes = true;
     }
 
-    public boolean isEnteringDoor() {
-        return enteringDoor;
-    }
 }

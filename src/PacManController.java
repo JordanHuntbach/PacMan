@@ -2,9 +2,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-public class PacManController {
+class PacManController {
 
-    public static String getNextDirection(Sprite pacman) {
+    static String getNextDirection(Sprite pacman) {
 
         Position junction = null;
 
@@ -35,9 +35,4 @@ public class PacManController {
 
     }
 
-    public static String getRandomDirection() {
-        ArrayList<String> directions = new ArrayList<>(Arrays.asList("UP", "DOWN", "LEFT", "RIGHT"));
-        Random random = new Random();
-        return directions.get(random.nextInt(directions.size()));
-    }
 }

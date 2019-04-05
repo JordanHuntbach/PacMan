@@ -6,7 +6,7 @@ public class Position {
     private double positionX;
     private double positionY;
 
-    private static List<Position> specialPositions = new ArrayList<Position>() {{
+    private static List<Position> specialPositions = new ArrayList<>() {{
         add(new Position(247, 227));
         add(new Position(307, 227));
         add(new Position(247, 467));
@@ -18,15 +18,15 @@ public class Position {
         positionY = y;
     }
 
-    public static List<Position> getSpecialPositions() {
+    static List<Position> getSpecialPositions() {
         return specialPositions;
     }
 
-    public double getPositionX() {
+    double getPositionX() {
         return positionX;
     }
 
-    public double getPositionY() {
+    double getPositionY() {
         return positionY;
     }
 
@@ -55,7 +55,7 @@ public class Position {
 
     // Some code
 
-    static HashMap<Position, Integer> junctions = new HashMap<Position, Integer>() {{
+    static HashMap<Position, Integer> junctions = new HashMap<>() {{
         put(new Position(27, 27), 4);
         put(new Position(127, 27), 8);
         put(new Position(247, 27), 3);
@@ -157,16 +157,16 @@ public class Position {
         return Float.compare(this.getSumCost(), other.getSumCost());
     }
 
-    public float getCost(Position node){
+    float getCost(Position node){
         return (float) Math.abs(node.getPositionX() - this.positionX) + (float) Math.abs(node.getPositionY() - this.positionY);
     }
 
     //The estimated cost should never exceed the true cost. The better the estimate, the more efficient the search.
-    public float getEstimatedCost(Position node){
+    float getEstimatedCost(Position node){
         return (float) Math.abs(node.getPositionX() - this.positionX) + (float) Math.abs(node.getPositionY() - this.positionY);
     }
 
-    public List<Position> getNeighbours(){
+    List<Position> getNeighbours(){
         return neighbours;
     }
 
@@ -430,7 +430,7 @@ public class Position {
         return positions;
     }
 
-    public static Position getNearestPosition(double x, double y){
+    static Position getNearestPosition(double x, double y){
         Position best = null;
         double minDistance = 1000;
         for (Position position : initialisePositions()) {
@@ -447,7 +447,7 @@ public class Position {
         return best;
     }
 
-    public static boolean isJunction(double x, double y) {
+    static boolean isJunction(double x, double y) {
         for (Position position : junctions.keySet()) {
             if (x == position.getPositionX() && y == position.getPositionY()) {
                 return true;
@@ -456,7 +456,7 @@ public class Position {
         return false;
     }
 
-    public double distanceTo(Position other) {
+    double distanceTo(Position other) {
         return Math.sqrt(Math.pow(other.getPositionX() - this.getPositionX(), 2) + Math.pow(other.getPositionY() - this.getPositionY(), 2));
     }
 }

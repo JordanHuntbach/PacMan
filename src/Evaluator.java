@@ -24,7 +24,7 @@ public abstract class Evaluator {
 
     private Random random = new Random();
 
-    public float getHighestScore() {
+    float getHighestScore() {
         return highestScore;
     }
 
@@ -89,7 +89,7 @@ public abstract class Evaluator {
         speciesMap.clear();
         nextGenerationGenomes.clear();
 
-        System.out.println("");
+        System.out.println();
         System.out.println("Allocating each genome a species.");
         for (Genome genome : genomes) {
             boolean foundSpecies = false;
@@ -128,7 +128,7 @@ public abstract class Evaluator {
                 stagnation = 0;
             }
         }
-        System.out.println("");
+        System.out.println();
 
         if (stagnation > 30 || speciesList.size() == populationSize) {
             System.out.println("Stagnant population. Killing off all but 20 genomes.");
@@ -182,7 +182,7 @@ public abstract class Evaluator {
                 child.mutation();
             }
             if (random.nextFloat() < ADD_CONNECTION_RATE) {
-                child.addConnectionMutation(connectionInnovation, 50);
+                child.addConnectionMutation(connectionInnovation);
             }
             if (random.nextFloat() < ADD_NODE_RATE) {
                 child.addNodeMutation(nodeInnovation, connectionInnovation);

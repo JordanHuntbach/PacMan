@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class NeuralNetwork {
+class NeuralNetwork {
 
     private Map<Integer, Neuron> neurons; // All neurons in genome, mapped by ID
 
@@ -54,7 +54,7 @@ public class NeuralNetwork {
         }
     }
 
-    public float[] calculate(float[] input_parameter) {
+    float[] calculate(float[] input_parameter) {
         if (input_parameter.length != input.size()) {
             System.out.println("Input mismatch.");
             throw new IllegalArgumentException("Number of inputs must match number of input neurons in genome.");

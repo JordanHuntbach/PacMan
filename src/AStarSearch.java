@@ -23,7 +23,7 @@ public class AStarSearch {
     /**
      Construct the path, not including the start node.
      */
-    protected List<Position> constructPath(Position node) {
+    private List<Position> constructPath(Position node) {
         LinkedList<Position> path = new LinkedList<>();
         while (node.pathParent != null) {
             path.addFirst(node);
@@ -52,7 +52,7 @@ public class AStarSearch {
                 return constructPath(goalNode);
             }
 
-            List neighbors = node.getNeighbours();
+            List<Position> neighbors = node.getNeighbours();
             for (Object neighbour : neighbors) {
                 Position neighbourNode = (Position) neighbour;
                 boolean isOpen = openList.contains(neighbourNode);
@@ -90,20 +90,4 @@ public class AStarSearch {
 
     private List<Position> positions = Position.initialisePositions();
 
-    Position getNearestPosition(double x, double y){
-        Position best = null;
-        double minDistance = 1000;
-        for (Position position : positions) {
-            double posX = position.getPositionX();
-            double posY = position.getPositionY();
-            double distance = Math.abs(posX - x) + Math.abs(posY - y);
-            if (distance == 0) {
-                return position;
-            } else if (distance < minDistance) {
-                best = position;
-                minDistance = distance;
-            }
-        }
-        return best;
-    }
 }

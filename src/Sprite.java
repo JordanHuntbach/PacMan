@@ -25,65 +25,61 @@ public class Sprite
         height = i.getHeight();
     }
 
-    public Image getImage() {
+    Image getImage() {
         return image;
     }
 
-    public void setImage(String filename) {
+    void setImage(String filename) {
         Image i = new Image(filename);
         setImage(i);
     }
 
-    public double getPositionX() {
+    double getPositionX() {
         return positionX;
     }
 
-    public double getPositionY() {
+    double getPositionY() {
         return positionY;
     }
 
-    public Position getPosition() {
-        return new Position(positionX, positionY);
-    }
-
-    public void setPosition(double x, double y) {
+    void setPosition(double x, double y) {
         positionX = x;
         positionY = y;
     }
 
-    public void setPosition(Position position) {
+    void setPosition(Position position) {
         positionX = position.getPositionX();
         positionY = position.getPositionY();
     }
 
-    public void setVelocity(double x, double y) {
+    void setVelocity(double x, double y) {
         velocityX = x;
         velocityY = y;
     }
 
-    public void update() {
+    void update() {
         positionX += velocityX;
         positionY += velocityY;
     }
 
-    public void undo() {
+    void undo() {
         positionX -= velocityX;
         positionY -= velocityY;
     }
 
-    public void render(GraphicsContext gc) {
+    void render(GraphicsContext gc) {
         gc.drawImage(image, positionX, positionY);
     }
 
-    public Rectangle2D getBoundary() {
+    Rectangle2D getBoundary() {
         return new Rectangle2D(positionX, positionY, width, height);
     }
 
-    public Rectangle2D eatBoundary() {
+    Rectangle2D eatBoundary() {
         return new Rectangle2D(positionX + 10, positionY + 10, width - 20, height - 20);
     }
 
-    public boolean canEat(Sprite s) {
+    boolean canEat(Sprite s) {
         return s.getBoundary().intersects(this.eatBoundary());
     }
 
