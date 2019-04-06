@@ -181,9 +181,9 @@ class NeuralNetwork {
             output = 0f;
         }
 
-        // Takes any float, and returns a value between 0 and 1. An input of 0 returns 0.5
+        // Takes any float, and returns a value between 1 and -1. An input of 0 returns 0
         private float sigmoidActivationFunction(float in) {
-            return (float) (1f / (1f + Math.exp(-4.9d * in)));
+            return (float) (2f / (1f + Math.exp(-4.9d * in)) - 1);
         }
 
         @Override
