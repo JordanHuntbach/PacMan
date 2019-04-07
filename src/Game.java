@@ -438,13 +438,14 @@ public class Game extends Application {
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
         int frameCounter = 0;
+        eatenCoolDown = 0;
 
         // Game loop - play until all points collected (or ghost hit).
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
-            int previousScore = score;
 
-            if (frameCounter > 500) {
-                return score;
+            frameCounter += 1;
+            if (frameCounter % 20 == 0) {
+                score += 1;
             }
 
             // Evaulate the NN to get the next direction.
@@ -461,12 +462,8 @@ public class Game extends Application {
             // Eat any pills.
             eatPills();
 
-            if (previousScore == score) {
-                // Update counter if we haven't eaten.
-                frameCounter++;
-            } else {
-                // Reset counter if we have eaten.
-                frameCounter = 0;
+            if (eatenCoolDown >= 500) {
+                return score;
             }
 
             // Update GUI if necessary.
@@ -508,7 +505,7 @@ public class Game extends Application {
 
         if (nnOutputs != null) {
             // Get the highest value.
-            float maximum = Float.MIN_VALUE;
+            float maximum = -Float.MAX_VALUE;
             int direction = -1;
             for (int i = 0; i < nnOutputs.length; i++) {
                 if (nnOutputs[i] > maximum) {
@@ -681,6 +678,7 @@ public class Game extends Application {
             ghostsEaten = 0;
             modeCounter = 0;
             currentMode = 0;
+            eatenCoolDown = 0;
         }
 
         // Initialise debug markers.
@@ -792,11 +790,17 @@ public class Game extends Application {
         System.out.println();
     }
 
-    private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs) {
+    private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs, boolean energizer) {
         if (useDotType) {
             // Distance + direction to closest pill.
-            Sprite pill = closestPill(dotTypeList);
-            inputDistanceAndDirection(pill, inputs, access);
+            Sprite pill = closestPill(dotTypeList, energizer);
+            Position position;
+            if (energizer) {
+                position = new Position(pill.positionX - 6, pill.positionY - 6);
+            } else {
+                position = new Position(pill.positionX - 14, pill.positionY - 14);
+            }
+            inputDistanceAndDirection(position, inputs, access);
         } else {
             for (int i = 0; i < 3; i++) {
                 inputs[access++] = 0;
@@ -857,16 +861,16 @@ public class Game extends Application {
     }
 
     // Calculates the distance and direction from Pac-Man to a Sprite, and puts the results in the inputs array.
-    private void inputDistanceAndDirection(Sprite sprite, float[] inputs, int access) {
-        if (sprite == null) {
+    private void inputDistanceAndDirection(Position position, float[] inputs, int access) {
+        if (position == null) {
             inputs[access++] = 0;
             inputs[access++] = 0;
             inputs[access] = 0;
         } else {
-            float distance = distanceToSprite(sprite);
+            float distance = distanceToPosition(position);
             inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
             if (distance != 0) {
-                double direction = Math.toRadians(directionToSprite(sprite));
+                double direction = Math.toRadians(directionToPosition(position));
                 inputs[access++] = (float) Math.cos(direction);
                 inputs[access] = (float) Math.sin(direction);
             } else {
@@ -877,12 +881,13 @@ public class Game extends Application {
     }
 
     // Returns the closest Sprite to Pac-Man from a given list.
-    private Sprite closestPill(List<Sprite> pills) {
+    private Sprite closestPill(List<Sprite> pills, boolean energizer) {
         float minDistance = Float.MAX_VALUE;
         Sprite closest = null;
         for (Sprite pill : pills) {
-            float dx = (float) Math.abs(pacman.getPositionX() - pill.getPositionX());
-            float dy = (float) Math.abs(pacman.getPositionY() - pill.getPositionY());
+            float difference = energizer ? 6 : 14;
+            float dx = (float) Math.abs(pacman.getPositionX() - pill.getPositionX() - difference);
+            float dy = (float) Math.abs(pacman.getPositionY() - pill.getPositionY() - difference);
             float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
             if (distance < minDistance) {
                 minDistance = distance;
@@ -892,10 +897,10 @@ public class Game extends Application {
         return closest;
     }
 
-    // Calculates the distance to a given Sprite from Pac-Man.
-    private float distanceToSprite(Sprite sprite) {
-        float dx = (float) Math.abs(pacman.getPositionX() - sprite.getPositionX());
-        float dy = (float) Math.abs(pacman.getPositionY() - sprite.getPositionY());
+    // Calculates the distance to a given Position from Pac-Man.
+    private float distanceToPosition(Position position) {
+        float dx = (float) Math.abs(pacman.getPositionX() - position.getPositionX());
+        float dy = (float) Math.abs(pacman.getPositionY() - position.getPositionY());
         float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         if (Float.isNaN(distance)) {
             System.out.println("Distance NaN");
@@ -903,10 +908,10 @@ public class Game extends Application {
         return distance;
     }
 
-    // Calculates the direction to a given Sprite from Pac-Man.
-    private double directionToSprite(Sprite sprite) {
-        double x = (sprite.getPositionX() - pacman.getPositionX()); // +ve if sprite to the right
-        double y = (pacman.getPositionY() - sprite.getPositionY()); // +ve if sprite above
+    // Calculates the direction to a given Position from Pac-Man.
+    private double directionToPosition(Position position) {
+        double x = (position.getPositionX() - pacman.getPositionX()); // +ve if position to the right
+        double y = (pacman.getPositionY() - position.getPositionY()); // +ve if position above
         double angle = Math.toDegrees(Math.atan(y / x)) - 90;
         if (Double.isNaN(angle)) {
             System.out.println("Direction NaN");
@@ -1057,7 +1062,7 @@ public class Game extends Application {
             // Eat pills.
             eatPills();
 
-            // If all pills eaten, end the loop and display a 'congrats' message.
+            // If all pills eaten, move onto next level.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
                 Platform.runLater(this::nextLevel);
                 break;
@@ -1067,7 +1072,7 @@ public class Game extends Application {
             if (!simulation || debug) {
                 Platform.runLater(this::updateScreen);
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(12);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1237,8 +1242,9 @@ public class Game extends Application {
             }
         }
 
-        if (useGhosts) {
-            if (pillEaten) {
+        if (pillEaten) {
+            eatenCoolDown = 0;
+            if (useGhosts) {
                 if (!pinky.isActive()) {
                     pinkyCounter += 1;
                 } else if (!inky.isActive()) {
@@ -1246,9 +1252,8 @@ public class Game extends Application {
                 } else if (!clyde.isActive()) {
                     clydeCounter += 1;
                 }
-                eatenCoolDown = 0;
             }
-
+        } else {
             eatenCoolDown += 1;
         }
     }
@@ -1369,14 +1374,16 @@ public class Game extends Application {
             clyde.setActive();
         }
 
-        if (eatenCoolDown >= 240) {
-            eatenCoolDown = 0;
+        if (eatenCoolDown > 240) {
             if (!pinky.isActive()) {
                 pinky.setActive();
+                eatenCoolDown = 0;
             } else if (!inky.isActive()) {
                 inky.setActive();
+                eatenCoolDown = 0;
             } else if (!clyde.isActive()) {
                 clyde.setActive();
+                eatenCoolDown = 0;
             }
         }
 

@@ -42,6 +42,10 @@ public class Sprite
         return positionY;
     }
 
+    Position getPosition() {
+        return new Position(positionX, positionY);
+    }
+
     void setPosition(double x, double y) {
         positionX = x;
         positionY = y;
