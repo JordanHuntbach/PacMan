@@ -1083,7 +1083,7 @@ public class Game extends Application {
             // Eat pills.
             eatPills();
 
-            // If all pills eaten, end the loop and display a 'congrats' message.
+            // If all pills eaten, move onto next level.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
                 Platform.runLater(this::nextLevel);
                 break;
@@ -1093,7 +1093,7 @@ public class Game extends Application {
             if (!simulation || debug) {
                 Platform.runLater(this::updateScreen);
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(12);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
