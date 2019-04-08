@@ -13,9 +13,9 @@ abstract class Evaluator {
     private float c1 = 1.0f;
     private float c2 = 1.0f;
     private float c3 = 0.35f;
-    private float d = 6.0f;
+    private float d = 10.0f;
     private float MUTATION_RATE = 0.8f;
-    private float ADD_CONNECTION_RATE = 0.15f;
+    private float ADD_CONNECTION_RATE = 0.2f;
     private float ADD_NODE_RATE = 0.1f;
     private float CHILD_IS_PARENT_CLONE = 0.1f;
 
@@ -68,16 +68,35 @@ abstract class Evaluator {
         System.out.println("DONE");
     }
 
-    void initialMutate() {
+    void initialMutate(int viewHeight, int viewWidth) {
         System.out.println("Mutating genomes.");
-        int counter = 0;
+
+        int rowMean = viewHeight / 2;
+        float rowSD = viewHeight / 8.0f;
+
+        int columnMean = viewWidth / 2;
+        float columnSD = viewWidth / 8.0f;
+
         for (Genome genome : genomes) {
-            if (counter < 10) {
-                counter++;
-                genome.addNodeMutation(nodeInnovation, connectionInnovation);
-            }
-            for (int i = 0; i < 100; i++) {
-                genome.mutation();
+            int connections = random.nextInt(3);
+            for (int i = 0; i <= connections; i++) {
+                int column = (int) Math.max(0, Math.min(16, columnMean + columnSD * random.nextGaussian()));
+                int row = (int) Math.max(0, Math.min(16, rowMean + rowSD * random.nextGaussian()));
+
+                int input = 4 + row * viewWidth + column;
+                int output = random.nextInt(4);
+
+                ConnectionGene connectionGene = null;
+                for(ConnectionGene connection : connectionInnovation.getConnectionGenes().values()) {
+                    if (connection.getInNode() == input && connection.getOutNode() == output) {
+                        connectionGene = connection;
+                        break;
+                    }
+                }
+                if (connectionGene == null) {
+                    connectionGene = new ConnectionGene(input, output, 2 * random.nextFloat() - 1, true, connectionInnovation.getInnovation());
+                }
+                genome.addConnectionGene(connectionGene, connectionInnovation);
             }
         }
     }

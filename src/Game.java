@@ -158,14 +158,14 @@ public class Game extends Application {
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
 
-    private int viewHight = 17;
-    private int viewWidth = 17;
+    private int viewHeight = 13;
+    private int viewWidth = 13;
 
-    private float [] inputs = new float[viewHight * viewWidth * 2];
+    private float [] inputs = new float[viewHeight * viewWidth * 2];
 
     // Training stuff.
     private boolean trainWithGUI = true;
-    private int populationSize = 100;
+    private int populationSize = 75;
     private int generations = 100;
 
     // Game settings.
@@ -348,7 +348,9 @@ public class Game extends Application {
 
     // Initialise NEAT.
     private void setUpNN() {
-        evaluator = new Evaluator(populationSize, newGenome(), nodeInnovation, connectionInnovation) {
+        Genome newGenome = newGenome();
+
+        evaluator = new Evaluator(populationSize, newGenome, nodeInnovation, connectionInnovation) {
             @Override
             float evaluateGenome(Genome genome, int generation, int member, float highestScore) {
                 return trainOnGame(genome, generation, member, highestScore);
@@ -356,7 +358,7 @@ public class Game extends Application {
         };
 
         // Mutate the starting genomes a little, for some initial variation.
-        evaluator.initialMutate();
+        evaluator.initialMutate(viewHeight, viewWidth);
 
         // Create a task which can be run in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<>() {
@@ -399,18 +401,9 @@ public class Game extends Application {
         genome.addNodeGene(right, nodeInnovation);
 
         Random random = new Random();
-        for (int i = 0; i < viewWidth * viewHight * 2; i++) {
+        for (int i = 0; i < viewWidth * viewHeight; i++) {
             NodeGene inputNode = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
             genome.addNodeGene(inputNode, nodeInnovation);
-            ConnectionGene connectionGene;
-            connectionGene = new ConnectionGene(inputNode.getId(), up.getId(), 2 * random.nextFloat() - 1, true, connectionInnovation.getInnovation());
-            genome.addConnectionGene(connectionGene, connectionInnovation);
-            connectionGene = new ConnectionGene(inputNode.getId(), down.getId(), 2 * random.nextFloat() - 1, true, connectionInnovation.getInnovation());
-            genome.addConnectionGene(connectionGene, connectionInnovation);
-            connectionGene = new ConnectionGene(inputNode.getId(), left.getId(), 2 * random.nextFloat() - 1, true, connectionInnovation.getInnovation());
-            genome.addConnectionGene(connectionGene, connectionInnovation);
-            connectionGene = new ConnectionGene(inputNode.getId(), right.getId(), 2 * random.nextFloat() - 1, true, connectionInnovation.getInnovation());
-            genome.addConnectionGene(connectionGene, connectionInnovation);
         }
 
         return genome;
@@ -428,7 +421,7 @@ public class Game extends Application {
 
             // Pause so we can see what's going on.
             try {
-                Thread.sleep(100);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -474,7 +467,7 @@ public class Game extends Application {
 
                 // Pause so we can see what's going on.
                 try {
-                    Thread.sleep(5);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -694,13 +687,13 @@ public class Game extends Application {
 
     // Fills the input array with the relevant values.
     private void getInputs(float[] inputs) {
-        char[][] mapView = new char[viewHight][viewWidth];
+        char[][] mapView = new char[viewHeight][viewWidth];
 
         int pacmanIndexX = (int) pacman.positionX / 20;
         int pacmanIndexY = (int) pacman.positionY / 20;
 
-        for (int i = 0; i < viewHight; i++) {
-            int mapPointerY = pacmanIndexY - (viewHight / 2) + i;
+        for (int i = 0; i < viewHeight; i++) {
+            int mapPointerY = pacmanIndexY - (viewHeight / 2) + i;
 
             if (mapPointerY < 0 || mapPointerY >= map.length) {
                 for (int j = 0; j < viewWidth; j++) {
@@ -736,7 +729,7 @@ public class Game extends Application {
                         inputs[i++] = -1;
                         break;
                     default:
-                        inputs[i++] = 0;
+                        inputs[i++] = 0.1f;
                         break;
                 }
             }
@@ -745,8 +738,8 @@ public class Game extends Application {
         int lowX = pacmanIndexX - (viewWidth / 2);
         int highX = lowX + viewWidth;
 
-        int lowY = pacmanIndexY - (viewHight / 2);
-        int highY = lowY + viewHight;
+        int lowY = pacmanIndexY - (viewHeight / 2);
+        int highY = lowY + viewHeight;
 
         for (Ghost ghost : ghosts) {
             int ghostIndexX = (int) ghost.positionX / 20;
@@ -775,7 +768,7 @@ public class Game extends Application {
             }
         }
 
-//        mapView[viewHight / 2][viewWidth / 2] = 'P';
+//        mapView[viewHeight / 2][viewWidth / 2] = 'P';
 //
 //        viewMap(mapView);
     }
