@@ -165,7 +165,7 @@ public class Game extends Application {
 
     // Training stuff.
     private boolean trainWithGUI = true;
-    private int populationSize = 75;
+    private int populationSize = 150;
     private int generations = 100;
 
     // Game settings.

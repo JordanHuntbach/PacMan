@@ -10,9 +10,9 @@ abstract class Evaluator {
     private List<Species> speciesList;
     private List<Genome> nextGenerationGenomes;
 
-    private float c1 = 1.0f;
-    private float c2 = 1.0f;
-    private float c3 = 0.35f;
+    private float c1 = 0.8f;
+    private float c2 = 0.8f;
+    private float c3 = 0.2f;
     private float d = 10.0f;
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.2f;
@@ -169,7 +169,7 @@ abstract class Evaluator {
         speciesList.removeIf(species -> species.getMembers().isEmpty());
         System.out.println("There are currently " + speciesList.size() + " species.");
 
-        if (speciesList.size() >= populationSize * 0.5) {
+        if (speciesList.size() >= populationSize * 0.15) {
             System.out.println("Too many species. Increasing d.");
             d += 1;
         }
