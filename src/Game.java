@@ -158,15 +158,14 @@ public class Game extends Application {
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
 
-    private int viewHeight = 13;
-    private int viewWidth = 13;
+    private int viewHeight = 11;
+    private int viewWidth = 11;
 
     private float [] inputs = new float[viewHeight * viewWidth * 2];
 
     // Training stuff.
-    private boolean trainWithGUI = true;
     private int populationSize = 150;
-    private int generations = 100;
+    private int generations = 200;
 
     // Game settings.
     private boolean ai = false;
@@ -232,10 +231,7 @@ public class Game extends Application {
         newGameButton.setOnAction(event -> {
             // Either train the neural network, or play a game.
             if (training) {
-                if (trainWithGUI) {
-                    guiSetup();
-                }
-                // TODO: nn gui setup
+                guiSetup();
                 setUpNN();
             } else {
                 newGame();
@@ -406,6 +402,20 @@ public class Game extends Application {
             genome.addNodeGene(inputNode, nodeInnovation);
         }
 
+        int upID = 4 + (viewHeight / 2 - 1) * viewWidth + viewWidth / 2;
+        int leftID = 4 + (viewHeight / 2) * viewWidth + viewWidth / 2 - 1;
+        int rightID = leftID + 2;
+        int downID = upID + 2 * viewWidth;
+
+        ConnectionGene upConnection = new ConnectionGene(upID, 0, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(upConnection, connectionInnovation);
+        ConnectionGene downConnection = new ConnectionGene(downID, 1, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(downConnection, connectionInnovation);
+        ConnectionGene leftConnection = new ConnectionGene(leftID, 2, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(leftConnection, connectionInnovation);
+        ConnectionGene rightConnection = new ConnectionGene(rightID, 3, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(rightConnection, connectionInnovation);
+
         return genome;
     }
 
@@ -414,18 +424,17 @@ public class Game extends Application {
         // Set up the game.
         gameSetup();
 
-        // Display GUI if necessary.
-        if (trainWithGUI) {
-            // Get the GUI thread to run the refreshCanvas() method.
-            Platform.runLater(this::refreshCanvas);
 
-            // Pause so we can see what's going on.
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Get the GUI thread to run the refreshCanvas() method.
+        Platform.runLater(this::refreshCanvas);
+
+        // Pause so we can see what's going on.
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
 
         // Create a neural network based on the genome parameter.
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
@@ -437,7 +446,7 @@ public class Game extends Application {
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
 
             frameCounter += 1;
-            if (frameCounter % 20 == 0) {
+            if (frameCounter % 30 == 0) {
                 score += 1;
             }
 
@@ -459,18 +468,15 @@ public class Game extends Application {
                 return score;
             }
 
-            // Update GUI if necessary.
-            if (trainWithGUI) {
-                // Get the GUI thread to update the screen.
-                Platform.runLater(this::updateScreen);
-                Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
+            // Get the GUI thread to update the screen.
+            Platform.runLater(this::updateScreen);
+            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 
-                // Pause so we can see what's going on.
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            // Pause so we can see what's going on.
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             // Handle ghost collisions.
@@ -685,6 +691,26 @@ public class Game extends Application {
         lives = 2;
     }
 
+    private boolean pillStillActive(int mapPointerX, int mapPointerY) {
+        Position pillPosition = new Position(21 + mapPointerX * 20, 21 + mapPointerY * 20);
+        for (Sprite pill : pillsList) {
+            if (pill.getPosition().equals(pillPosition)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean powerPillStillActive(int mapPointerX, int mapPointerY) {
+        Position pillPosition = new Position(13 + mapPointerX * 20, 13 + mapPointerY * 20);
+        for (Sprite powerPill : powerPillsList) {
+            if (powerPill.getPosition().equals(pillPosition)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Fills the input array with the relevant values.
     private void getInputs(float[] inputs) {
         char[][] mapView = new char[viewHeight][viewWidth];
@@ -708,9 +734,17 @@ public class Game extends Application {
                     } else if (map[mapPointerY][mapPointerX] > 2) {
                         mapView[i][j] = 'X';
                     } else if (map[mapPointerY][mapPointerX] == 1) {
-                        mapView[i][j] = '.';
+                        if (pillStillActive(mapPointerX, mapPointerY)) {
+                            mapView[i][j] = '.';
+                        } else {
+                            mapView[i][j] = ' ';
+                        }
                     } else if (map[mapPointerY][mapPointerX] == 2) {
-                        mapView[i][j] = 'O';
+                        if (powerPillStillActive(mapPointerX, mapPointerY)) {
+                            mapView[i][j] = 'O';
+                        } else {
+                            mapView[i][j] = ' ';
+                        }
                     } else if (map[mapPointerY][mapPointerX] == 0) {
                         mapView[i][j] = ' ';
                     }
@@ -768,8 +802,8 @@ public class Game extends Application {
             }
         }
 
-//        mapView[viewHeight / 2][viewWidth / 2] = 'P';
-//
+        mapView[viewHeight / 2][viewWidth / 2] = 'P';
+
 //        viewMap(mapView);
     }
 

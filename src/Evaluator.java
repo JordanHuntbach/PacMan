@@ -10,13 +10,13 @@ abstract class Evaluator {
     private List<Species> speciesList;
     private List<Genome> nextGenerationGenomes;
 
-    private float c1 = 0.8f;
+    private float c1 = 0.85f;
     private float c2 = 0.8f;
-    private float c3 = 0.2f;
-    private float d = 10.0f;
-    private float MUTATION_RATE = 0.8f;
-    private float ADD_CONNECTION_RATE = 0.2f;
-    private float ADD_NODE_RATE = 0.1f;
+    private float c3 = 0.25f;
+    private float d = 8.0f;
+    private float MUTATION_RATE = 0.75f;
+    private float ADD_CONNECTION_RATE = 0.4f;
+    private float ADD_NODE_RATE = 0.2f;
     private float CHILD_IS_PARENT_CLONE = 0.1f;
 
     private Counter nodeInnovation;
@@ -78,7 +78,7 @@ abstract class Evaluator {
         float columnSD = viewWidth / 8.0f;
 
         for (Genome genome : genomes) {
-            int connections = random.nextInt(3);
+            int connections = random.nextInt(5);
             for (int i = 0; i <= connections; i++) {
                 int column = (int) Math.max(0, Math.min(16, columnMean + columnSD * random.nextGaussian()));
                 int row = (int) Math.max(0, Math.min(16, rowMean + rowSD * random.nextGaussian()));
