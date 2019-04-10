@@ -10,10 +10,10 @@ abstract class Evaluator {
     private List<Species> speciesList;
     private List<Genome> nextGenerationGenomes;
 
-    private float c1 = 0.85f;
-    private float c2 = 0.8f;
+    private float c1 = 1.0f;
+    private float c2 = 1.0f;
     private float c3 = 0.25f;
-    private float d = 8.0f;
+    private float d = 20.0f;
     private float MUTATION_RATE = 0.75f;
     private float ADD_CONNECTION_RATE = 0.4f;
     private float ADD_NODE_RATE = 0.2f;
@@ -78,10 +78,10 @@ abstract class Evaluator {
         float columnSD = viewWidth / 8.0f;
 
         for (Genome genome : genomes) {
-            int connections = random.nextInt(5);
+            int connections = random.nextInt(15);
             for (int i = 0; i <= connections; i++) {
-                int column = (int) Math.max(0, Math.min(16, columnMean + columnSD * random.nextGaussian()));
-                int row = (int) Math.max(0, Math.min(16, rowMean + rowSD * random.nextGaussian()));
+                int column = (int) Math.max(0, Math.min(viewWidth, columnMean + columnSD * random.nextGaussian()));
+                int row = (int) Math.max(0, Math.min(viewHeight, rowMean + rowSD * random.nextGaussian()));
 
                 int input = 4 + row * viewWidth + column;
                 int output = random.nextInt(4);
@@ -96,7 +96,9 @@ abstract class Evaluator {
                 if (connectionGene == null) {
                     connectionGene = new ConnectionGene(input, output, 2 * random.nextFloat() - 1, true, connectionInnovation.getInnovation());
                 }
-                genome.addConnectionGene(connectionGene, connectionInnovation);
+                if (!genome.getConnections().containsKey(connectionGene.getInnovation())) {
+                    genome.addConnectionGene(connectionGene, connectionInnovation);
+                }
             }
         }
     }

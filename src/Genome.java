@@ -364,9 +364,10 @@ class Genome {
 
         float averageWeightDifference = weightDifference / matchingGenes;
 
-        int genome1Genes = genome1.getNodes().size() + genome1.getConnections().size();
-        int genome2Genes = genome2.getNodes().size() + genome2.getConnections().size();
-        int n = Math.max(genome1Genes, genome2Genes);
+//        int genome1Genes = genome1.getNodes().size() + genome1.getConnections().size();
+//        int genome2Genes = genome2.getNodes().size() + genome2.getConnections().size();
+//        int n = Math.max(genome1Genes, genome2Genes);
+        int n = 1;
 
         return (c1 * excessGenes / n) + (c2 * disjointGenes / n) + (c3 * averageWeightDifference);
     }

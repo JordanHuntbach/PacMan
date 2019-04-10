@@ -430,7 +430,7 @@ public class Game extends Application {
 
         // Pause so we can see what's going on.
         try {
-            Thread.sleep(10);
+            Thread.sleep(2);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -498,7 +498,7 @@ public class Game extends Application {
     // This method passes the inputs to a given NN, and sets nextDirection if appropriate.
     private void getNextDirectionFromNN(NeuralNetwork neuralNetwork){
         // Calculate inputs.
-        getInputs(inputs);
+        getInputs();
         // Calculate outputs.
         float[] nnOutputs = neuralNetwork.calculate(inputs);
 
@@ -588,8 +588,8 @@ public class Game extends Application {
                 if(code == 1 && useDots) {
                     Sprite pill = new Sprite();
                     pill.setImage("Sprites/Pickups/pill.png");
-                    double px = 21 + 20 * colCounter;
-                    double py = 21 + 20 * rowCounter;
+                    double px = 22 + 20 * colCounter;
+                    double py = 22 + 20 * rowCounter;
                     pill.setPosition(px, py);
                     pillsList.add(pill);
                 } else if (code == 2 && useEnergizers) {
@@ -692,7 +692,7 @@ public class Game extends Application {
     }
 
     private boolean pillStillActive(int mapPointerX, int mapPointerY) {
-        Position pillPosition = new Position(21 + mapPointerX * 20, 21 + mapPointerY * 20);
+        Position pillPosition = new Position(22 + mapPointerX * 20, 22 + mapPointerY * 20);
         for (Sprite pill : pillsList) {
             if (pill.getPosition().equals(pillPosition)) {
                 return true;
@@ -712,7 +712,7 @@ public class Game extends Application {
     }
 
     // Fills the input array with the relevant values.
-    private void getInputs(float[] inputs) {
+    private void getInputs() {
         char[][] mapView = new char[viewHeight][viewWidth];
 
         int pacmanIndexX = (int) pacman.positionX / 20;
@@ -802,9 +802,9 @@ public class Game extends Application {
             }
         }
 
-        mapView[viewHeight / 2][viewWidth / 2] = 'P';
+//        mapView[viewHeight / 2][viewWidth / 2] = 'P';
 
-//        viewMap(mapView);
+        //viewMap(mapView);
     }
 
     private void viewMap(char[][] array) {
@@ -1046,6 +1046,9 @@ public class Game extends Application {
         }
 
         // Create a NN from the best genome found.
+        nodeInnovation = new Counter();
+        connectionInnovation = new Counter();
+
         Genome genome = loadGenome();
         if (genome != null) {
             neuralNetwork = new NeuralNetwork(genome);
@@ -1104,6 +1107,8 @@ public class Game extends Application {
                     e.printStackTrace();
                 }
             }
+
+//            getInputs(); // Just so we can view the map for testing purposes.
 
             // Handle the ghost collisions.
             for (Ghost ghost : ghosts) {
