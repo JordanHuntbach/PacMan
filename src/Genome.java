@@ -95,7 +95,7 @@ class Genome {
     void addConnectionMutation(Counter innovation) {
         int tries = 0;
         boolean success = false;
-        while (!success && tries < 50) {
+        while (!success && tries < 200) {
             List<NodeGene> nodesList = new ArrayList<>(nodes.values());
 
             NodeGene node1 = nodesList.get(random.nextInt(nodesList.size()));
@@ -198,11 +198,17 @@ class Genome {
 
     void mutation() {
         for (ConnectionGene connection : connections.values()) {
+            float decider = random.nextFloat();
+
+            float PROBABILITY_OF_MUTATION = 0.50f;
             float PROBABILITY_PERTURBING = 0.90f;
-            if (random.nextFloat() < PROBABILITY_PERTURBING) {
-                connection.setWeight(connection.getWeight() * (random.nextFloat() * 4f - 2f));
-            } else {
-                connection.setWeight(random.nextFloat() * 4f - 2f);
+
+            if (decider < PROBABILITY_OF_MUTATION) {
+                if (random.nextFloat() < PROBABILITY_PERTURBING) {
+                    connection.setWeight(connection.getWeight() * (random.nextFloat() * 4f - 2f));
+                } else {
+                    connection.setWeight(random.nextFloat() * 4f - 2f);
+                }
             }
         }
     }

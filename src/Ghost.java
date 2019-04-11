@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Ghost extends Sprite {
+class Ghost extends Sprite {
 
     enum ghostName {
         BLINKY,
@@ -129,6 +129,8 @@ public class Ghost extends Sprite {
 
         exitingDoor = false;
         enteringDoor = false;
+
+        SPEED = 2;
 
         this.setImage(filepath + "Up.png");
 
@@ -419,11 +421,11 @@ public class Ghost extends Sprite {
     }
 
     private Rectangle2D catchBoundary() {
-        return new Rectangle2D(positionX + 10, positionY + 10, width - 20, height - 20);
+        return new Rectangle2D(positionX + 15, positionY + 15, width - 30, height - 30);
     }
 
-    boolean canCatch(Sprite s) {
-        return s.eatBoundary().intersects(this.catchBoundary());
+    boolean canCatch(Sprite pacman) {
+        return pacman.eatBoundary().intersects(this.catchBoundary());
     }
 
     boolean isSpooked(){

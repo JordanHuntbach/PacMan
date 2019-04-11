@@ -15,7 +15,7 @@ abstract class Evaluator {
     private float c3 = 0.35f;
     private float d = 6.0f;
     private float MUTATION_RATE = 0.8f;
-    private float ADD_CONNECTION_RATE = 0.1f;
+    private float ADD_CONNECTION_RATE = 0.15f;
     private float ADD_NODE_RATE = 0.1f;
     private float CHILD_IS_PARENT_CLONE = 0.1f;
 
@@ -130,7 +130,7 @@ abstract class Evaluator {
         }
         System.out.println();
 
-        if (stagnation > 30 || speciesList.size() == populationSize) {
+        if (stagnation > 30) {
             System.out.println("Stagnant population. Killing off all but 20 genomes.");
 
             genomes.sort(new FitnessComparator());
@@ -149,6 +149,11 @@ abstract class Evaluator {
         System.out.println("Removing unused species.");
         speciesList.removeIf(species -> species.getMembers().isEmpty());
         System.out.println("There are currently " + speciesList.size() + " species.");
+
+        if (speciesList.size() >= populationSize * 0.15) {
+            System.out.println("Too many species. Increasing d.");
+            d += 1;
+        }
 
         System.out.println("Moving the best of each species to the next generation.");
         for (Species species : speciesList) {

@@ -45,27 +45,29 @@ public class Game extends Application {
     7 = Corner (Top <-> Left)
     8 = Corner (Bottom <-> Left)
     9 = Door
+    10= Inaccessible
     */
+    private int X = 10;
     private int[][] map = new int[][]{
             {6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 3, 3, 3, 8, 1, 4, 4, 1, 6, 3, 3, 3, 8, 1, 6, 3, 3, 8, 1, 4},
-            {4, 2, 4, 0, 0, 4, 1, 4, 0, 0, 0, 4, 1, 4, 4, 1, 4, 0, 0, 0, 4, 1, 4, 0, 0, 4, 2, 4},
+            {4, 2, 4, X, X, 4, 1, 4, X, X, X, 4, 1, 4, 4, 1, 4, X, X, X, 4, 1, 4, X, X, 4, 2, 4},
             {4, 1, 5, 3, 3, 7, 1, 5, 3, 3, 3, 7, 1, 5, 7, 1, 5, 3, 3, 3, 7, 1, 5, 3, 3, 7, 1, 4},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 8, 1, 6, 3, 3, 3, 3, 3, 3, 8, 1, 6, 8, 1, 6, 3, 3, 8, 1, 4},
             {4, 1, 5, 3, 3, 7, 1, 4, 4, 1, 5, 3, 3, 8, 6, 3, 3, 7, 1, 4, 4, 1, 5, 3, 3, 7, 1, 4},
             {4, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 4},
             {5, 3, 3, 3, 3, 8, 1, 4, 5, 3, 3, 8, 0, 4, 4, 0, 6, 3, 3, 7, 4, 1, 6, 3, 3, 3, 3, 7},
-            {0, 0, 0, 0, 0, 4, 1, 4, 6, 3, 3, 7, 0, 5, 7, 0, 5, 3, 3, 8, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 6, 3, 3, 9, 9, 3, 3, 8, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {3, 3, 3, 3, 3, 7, 1, 5, 7, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 5, 7, 1, 5, 3, 3, 3, 3, 3},
-            {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
-            {3, 3, 3, 3, 3, 8, 1, 6, 8, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 6, 8, 1, 6, 3, 3, 3, 3, 3},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 5, 3, 3, 3, 3, 3, 3, 7, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 6, 3, 3, 3, 3, 3, 3, 8, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
+            {X, X, X, X, X, 4, 1, 4, 6, 3, 3, 7, 0, 5, 7, 0, 5, 3, 3, 8, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 6, 3, 3, 9, 9, 3, 3, 8, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {3, 3, 3, 3, 3, 7, 1, 5, 7, 0, 4, X, X, X, X, X, X, 4, 0, 5, 7, 1, 5, 3, 3, 3, 3, 3},
+            {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4, X, X, X, X, X, X, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
+            {3, 3, 3, 3, 3, 8, 1, 6, 8, 0, 4, X, X, X, X, X, X, 4, 0, 6, 8, 1, 6, 3, 3, 3, 3, 3},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 5, 3, 3, 3, 3, 3, 3, 7, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 6, 3, 3, 3, 3, 3, 3, 8, 0, 4, 4, 1, 4, X, X, X, X, X},
             {6, 3, 3, 3, 3, 7, 1, 5, 7, 0, 5, 3, 3, 8, 6, 3, 3, 7, 0, 5, 7, 1, 5, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 3, 3, 3, 8, 1, 4, 4, 1, 6, 3, 3, 3, 8, 1, 6, 3, 3, 8, 1, 4},
@@ -160,9 +162,8 @@ public class Game extends Application {
     private float [] inputs = new float[16];
 
     // Training stuff.
-    private boolean trainWithGUI = true;
-    private int populationSize = 50;
-    private int generations = 50;
+    private int populationSize = 150;
+    private int generations = 250;
 
     // Game settings.
     private boolean ai = false;
@@ -228,10 +229,7 @@ public class Game extends Application {
         newGameButton.setOnAction(event -> {
             // Either train the neural network, or play a game.
             if (training) {
-                if (trainWithGUI) {
-                    guiSetup();
-                }
-                // TODO: nn gui setup
+                guiSetup();
                 setUpNN();
             } else {
                 newGame();
@@ -344,7 +342,9 @@ public class Game extends Application {
 
     // Initialise NEAT.
     private void setUpNN() {
-        evaluator = new Evaluator(populationSize, newGenome(), nodeInnovation, connectionInnovation) {
+        Genome newGenome = newGenome();
+
+        evaluator = new Evaluator(populationSize, newGenome, nodeInnovation, connectionInnovation) {
             @Override
             float evaluateGenome(Genome genome, int generation, int member, float highestScore) {
                 return trainOnGame(genome, generation, member, highestScore);
@@ -353,7 +353,8 @@ public class Game extends Application {
 
         // Mutate the starting genomes a little, for some initial variation.
         evaluator.initialMutate();
-        evaluator.initialMutate();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> evaluator.saveBestGenome()));
 
         // Create a task which can be run in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<>() {
@@ -463,30 +464,29 @@ public class Game extends Application {
         // Set up the game.
         gameSetup();
 
-        // Display GUI if necessary.
-        if (trainWithGUI) {
-            // Get the GUI thread to run the refreshCanvas() method.
-            Platform.runLater(this::refreshCanvas);
 
-            // Pause so we can see what's going on.
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Get the GUI thread to run the refreshCanvas() method.
+        Platform.runLater(this::refreshCanvas);
+
+        // Pause so we can see what's going on.
+        try {
+            Thread.sleep(2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         // Create a neural network based on the genome parameter.
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
         int frameCounter = 0;
+        eatenCoolDown = 0;
 
         // Game loop - play until all points collected (or ghost hit).
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
-            int previousScore = score;
 
-            if (frameCounter > 500) {
-                return score;
+            frameCounter += 1;
+            if (frameCounter % 50 == 0) {
+                score += 1;
             }
 
             // Evaulate the NN to get the next direction.
@@ -503,26 +503,19 @@ public class Game extends Application {
             // Eat any pills.
             eatPills();
 
-            if (previousScore == score) {
-                // Update counter if we haven't eaten.
-                frameCounter++;
-            } else {
-                // Reset counter if we have eaten.
-                frameCounter = 0;
+            if (eatenCoolDown >= 1000) {
+                return score;
             }
 
-            // Update GUI if necessary.
-            if (trainWithGUI) {
-                // Get the GUI thread to update the screen.
-                Platform.runLater(this::updateScreen);
-                Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
+            // Get the GUI thread to update the screen.
+            Platform.runLater(this::updateScreen);
+            Platform.runLater(() -> trainingStats(genNumber, memNumber, highScore));
 
-                // Pause so we can see what's going on.
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            // Pause so we can see what's going on.
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             // Handle ghost collisions.
@@ -544,13 +537,13 @@ public class Game extends Application {
     // This method passes the inputs to a given NN, and sets nextDirection if appropriate.
     private void getNextDirectionFromNN(NeuralNetwork neuralNetwork){
         // Calculate inputs.
-        getInputs(inputs);
+        getInputs();
         // Calculate outputs.
         float[] nnOutputs = neuralNetwork.calculate(inputs);
 
         if (nnOutputs != null) {
             // Get the highest value.
-            float maximum = Float.MIN_VALUE;
+            float maximum = -Float.MAX_VALUE;
             int direction = -1;
             for (int i = 0; i < nnOutputs.length; i++) {
                 if (nnOutputs[i] > maximum) {
@@ -634,8 +627,8 @@ public class Game extends Application {
                 if(code == 1 && useDots) {
                     Sprite pill = new Sprite();
                     pill.setImage("Sprites/Pickups/pill.png");
-                    double px = 21 + 20 * colCounter;
-                    double py = 21 + 20 * rowCounter;
+                    double px = 22 + 20 * colCounter;
+                    double py = 22 + 20 * rowCounter;
                     pill.setPosition(px, py);
                     pillsList.add(pill);
                 } else if (code == 2 && useEnergizers) {
@@ -723,6 +716,7 @@ public class Game extends Application {
             ghostsEaten = 0;
             modeCounter = 0;
             currentMode = 0;
+            eatenCoolDown = 0;
         }
 
         // Initialise debug markers.
@@ -737,7 +731,7 @@ public class Game extends Application {
     }
 
     // Fills the input array with the relevant values.
-    private void getInputs(float[] inputs) {
+    private void getInputs() {
         // Pointer to current position in the input array.
         int access = 0;
 
@@ -753,7 +747,7 @@ public class Game extends Application {
         if (useGhosts) {
             for (Ghost ghost : ghosts) {
                 inputs[access++] = ghost.isActive() ? 1 : -1;       // Is ghost active.
-                inputDistanceAndDirection(ghost, inputs, access);   // Distance and direction to ghost.
+                inputDistanceAndDirection(ghost.getPosition(), inputs, access);   // Distance and direction to ghost.
                 access += 3;
                 inputs[access++] = ghost.isSpooked() ? 1 : -1;      // Is ghost edible.
             }
@@ -763,9 +757,9 @@ public class Game extends Application {
             }
         }
 
-        handleDotInputs(useDots, pillsList, access, inputs);
+        handleDotInputs(useDots, pillsList, access, inputs, false);
         access += 3;
-        handleDotInputs(useEnergizers, powerPillsList, access, inputs);
+        handleDotInputs(useEnergizers, powerPillsList, access, inputs, true);
         access += 3;
 
         // Current position
@@ -774,11 +768,17 @@ public class Game extends Application {
 
     }
 
-    private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs) {
+    private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs, boolean energizer) {
         if (useDotType) {
             // Distance + direction to closest pill.
-            Sprite pill = closestPill(dotTypeList);
-            inputDistanceAndDirection(pill, inputs, access);
+            Sprite pill = closestPill(dotTypeList, energizer);
+            Position position;
+            if (energizer) {
+                position = new Position(pill.positionX - 6, pill.positionY - 6);
+            } else {
+                position = new Position(pill.positionX - 14, pill.positionY - 14);
+            }
+            inputDistanceAndDirection(position, inputs, access);
         } else {
             for (int i = 0; i < 3; i++) {
                 inputs[access++] = 0;
@@ -839,16 +839,16 @@ public class Game extends Application {
     }
 
     // Calculates the distance and direction from Pac-Man to a Sprite, and puts the results in the inputs array.
-    private void inputDistanceAndDirection(Sprite sprite, float[] inputs, int access) {
-        if (sprite == null) {
+    private void inputDistanceAndDirection(Position position, float[] inputs, int access) {
+        if (position == null) {
             inputs[access++] = 0;
             inputs[access++] = 0;
             inputs[access] = 0;
         } else {
-            float distance = distanceToSprite(sprite);
+            float distance = distanceToPosition(position);
             inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
             if (distance != 0) {
-                double direction = Math.toRadians(directionToSprite(sprite));
+                double direction = Math.toRadians(directionToPosition(position));
                 inputs[access++] = (float) Math.cos(direction);
                 inputs[access] = (float) Math.sin(direction);
             } else {
@@ -859,12 +859,13 @@ public class Game extends Application {
     }
 
     // Returns the closest Sprite to Pac-Man from a given list.
-    private Sprite closestPill(List<Sprite> pills) {
+    private Sprite closestPill(List<Sprite> pills, boolean energizer) {
         float minDistance = Float.MAX_VALUE;
         Sprite closest = null;
         for (Sprite pill : pills) {
-            float dx = (float) Math.abs(pacman.getPositionX() - pill.getPositionX());
-            float dy = (float) Math.abs(pacman.getPositionY() - pill.getPositionY());
+            float difference = energizer ? 6 : 14;
+            float dx = (float) Math.abs(pacman.getPositionX() - pill.getPositionX() - difference);
+            float dy = (float) Math.abs(pacman.getPositionY() - pill.getPositionY() - difference);
             float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
             if (distance < minDistance) {
                 minDistance = distance;
@@ -874,10 +875,10 @@ public class Game extends Application {
         return closest;
     }
 
-    // Calculates the distance to a given Sprite from Pac-Man.
-    private float distanceToSprite(Sprite sprite) {
-        float dx = (float) Math.abs(pacman.getPositionX() - sprite.getPositionX());
-        float dy = (float) Math.abs(pacman.getPositionY() - sprite.getPositionY());
+    // Calculates the distance to a given Position from Pac-Man.
+    private float distanceToPosition(Position position) {
+        float dx = (float) Math.abs(pacman.getPositionX() - position.getPositionX());
+        float dy = (float) Math.abs(pacman.getPositionY() - position.getPositionY());
         float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         if (Float.isNaN(distance)) {
             System.out.println("Distance NaN");
@@ -885,10 +886,10 @@ public class Game extends Application {
         return distance;
     }
 
-    // Calculates the direction to a given Sprite from Pac-Man.
-    private double directionToSprite(Sprite sprite) {
-        double x = (sprite.getPositionX() - pacman.getPositionX()); // +ve if sprite to the right
-        double y = (pacman.getPositionY() - sprite.getPositionY()); // +ve if sprite above
+    // Calculates the direction to a given Position from Pac-Man.
+    private double directionToPosition(Position position) {
+        double x = (position.getPositionX() - pacman.getPositionX()); // +ve if position to the right
+        double y = (pacman.getPositionY() - position.getPositionY()); // +ve if position above
         double angle = Math.toDegrees(Math.atan(y / x)) - 90;
         if (Double.isNaN(angle)) {
             System.out.println("Direction NaN");
@@ -996,6 +997,9 @@ public class Game extends Application {
         }
 
         // Create a NN from the best genome found.
+        nodeInnovation = new Counter();
+        connectionInnovation = new Counter();
+
         Genome genome = loadGenome();
         if (genome != null) {
             neuralNetwork = new NeuralNetwork(genome);
@@ -1039,7 +1043,7 @@ public class Game extends Application {
             // Eat pills.
             eatPills();
 
-            // If all pills eaten, end the loop and display a 'congrats' message.
+            // If all pills eaten, move onto next level.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
                 Platform.runLater(this::nextLevel);
                 break;
@@ -1219,8 +1223,9 @@ public class Game extends Application {
             }
         }
 
-        if (useGhosts) {
-            if (pillEaten) {
+        if (pillEaten) {
+            eatenCoolDown = 0;
+            if (useGhosts) {
                 if (!pinky.isActive()) {
                     pinkyCounter += 1;
                 } else if (!inky.isActive()) {
@@ -1228,9 +1233,8 @@ public class Game extends Application {
                 } else if (!clyde.isActive()) {
                     clydeCounter += 1;
                 }
-                eatenCoolDown = 0;
             }
-
+        } else {
             eatenCoolDown += 1;
         }
     }
@@ -1351,14 +1355,16 @@ public class Game extends Application {
             clyde.setActive();
         }
 
-        if (eatenCoolDown >= 240) {
-            eatenCoolDown = 0;
+        if (eatenCoolDown > 240) {
             if (!pinky.isActive()) {
                 pinky.setActive();
+                eatenCoolDown = 0;
             } else if (!inky.isActive()) {
                 inky.setActive();
+                eatenCoolDown = 0;
             } else if (!clyde.isActive()) {
                 clyde.setActive();
+                eatenCoolDown = 0;
             }
         }
 
