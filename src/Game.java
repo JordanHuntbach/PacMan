@@ -45,27 +45,29 @@ public class Game extends Application {
     7 = Corner (Top <-> Left)
     8 = Corner (Bottom <-> Left)
     9 = Door
+    10= Inaccesible
     */
+    private int X = 10;
     private int[][] map = new int[][]{
             {6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 3, 3, 3, 8, 1, 4, 4, 1, 6, 3, 3, 3, 8, 1, 6, 3, 3, 8, 1, 4},
-            {4, 2, 4, 0, 0, 4, 1, 4, 0, 0, 0, 4, 1, 4, 4, 1, 4, 0, 0, 0, 4, 1, 4, 0, 0, 4, 2, 4},
+            {4, 2, 4, X, X, 4, 1, 4, X, X, X, 4, 1, 4, 4, 1, 4, X, X, X, 4, 1, 4, X, X, 4, 2, 4},
             {4, 1, 5, 3, 3, 7, 1, 5, 3, 3, 3, 7, 1, 5, 7, 1, 5, 3, 3, 3, 7, 1, 5, 3, 3, 7, 1, 4},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 8, 1, 6, 3, 3, 3, 3, 3, 3, 8, 1, 6, 8, 1, 6, 3, 3, 8, 1, 4},
             {4, 1, 5, 3, 3, 7, 1, 4, 4, 1, 5, 3, 3, 8, 6, 3, 3, 7, 1, 4, 4, 1, 5, 3, 3, 7, 1, 4},
             {4, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 4},
             {5, 3, 3, 3, 3, 8, 1, 4, 5, 3, 3, 8, 0, 4, 4, 0, 6, 3, 3, 7, 4, 1, 6, 3, 3, 3, 3, 7},
-            {0, 0, 0, 0, 0, 4, 1, 4, 6, 3, 3, 7, 0, 5, 7, 0, 5, 3, 3, 8, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 6, 3, 3, 9, 9, 3, 3, 8, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {3, 3, 3, 3, 3, 7, 1, 5, 7, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 5, 7, 1, 5, 3, 3, 3, 3, 3},
-            {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
-            {3, 3, 3, 3, 3, 8, 1, 6, 8, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 6, 8, 1, 6, 3, 3, 3, 3, 3},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 5, 3, 3, 3, 3, 3, 3, 7, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 4, 1, 4, 4, 0, 6, 3, 3, 3, 3, 3, 3, 8, 0, 4, 4, 1, 4, 0, 0, 0, 0, 0},
+            {X, X, X, X, X, 4, 1, 4, 6, 3, 3, 7, 0, 5, 7, 0, 5, 3, 3, 8, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 6, 3, 3, 9, 9, 3, 3, 8, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {3, 3, 3, 3, 3, 7, 1, 5, 7, 0, 4, X, X, X, X, X, X, 4, 0, 5, 7, 1, 5, 3, 3, 3, 3, 3},
+            {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4, X, X, X, X, X, X, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},
+            {3, 3, 3, 3, 3, 8, 1, 6, 8, 0, 4, X, X, X, X, X, X, 4, 0, 6, 8, 1, 6, 3, 3, 3, 3, 3},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 5, 3, 3, 3, 3, 3, 3, 7, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 4, X, X, X, X, X},
+            {X, X, X, X, X, 4, 1, 4, 4, 0, 6, 3, 3, 3, 3, 3, 3, 8, 0, 4, 4, 1, 4, X, X, X, X, X},
             {6, 3, 3, 3, 3, 7, 1, 5, 7, 0, 5, 3, 3, 8, 6, 3, 3, 7, 0, 5, 7, 1, 5, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 3, 3, 3, 8, 1, 4, 4, 1, 6, 3, 3, 3, 8, 1, 6, 3, 3, 8, 1, 4},
@@ -158,14 +160,14 @@ public class Game extends Application {
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
 
-    private int viewHeight = 11;
-    private int viewWidth = 11;
+    private int viewHeight = 9;
+    private int viewWidth = 9;
 
     private float [] inputs = new float[viewHeight * viewWidth * 2];
 
     // Training stuff.
     private int populationSize = 150;
-    private int generations = 200;
+    private int generations = 250;
 
     // Game settings.
     private boolean ai = false;
@@ -356,6 +358,8 @@ public class Game extends Application {
         // Mutate the starting genomes a little, for some initial variation.
         evaluator.initialMutate(viewHeight, viewWidth);
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> evaluator.saveBestGenome()));
+
         // Create a task which can be run in a non-GUI thread, to prevent blocking.
         Task<Void> task = new Task<>() {
             @Override
@@ -397,7 +401,7 @@ public class Game extends Application {
         genome.addNodeGene(right, nodeInnovation);
 
         Random random = new Random();
-        for (int i = 0; i < viewWidth * viewHeight; i++) {
+        for (int i = 0; i < viewWidth * viewHeight * 2; i++) {
             NodeGene inputNode = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
             genome.addNodeGene(inputNode, nodeInnovation);
         }
@@ -446,7 +450,7 @@ public class Game extends Application {
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
 
             frameCounter += 1;
-            if (frameCounter % 30 == 0) {
+            if (frameCounter % 50 == 0) {
                 score += 1;
             }
 
@@ -723,15 +727,19 @@ public class Game extends Application {
 
             if (mapPointerY < 0 || mapPointerY >= map.length) {
                 for (int j = 0; j < viewWidth; j++) {
-                    mapView[i][j] = ' ';
+                    mapView[i][j] = 'X';
                 }
             } else {
                 for (int j = 0; j < viewWidth; j++) {
-                    int mapPointerX = pacmanIndexX - (viewWidth / 2) + j;
+                    int mapPointerX = (pacmanIndexX - (viewWidth / 2) + j);
 
-                    if (mapPointerX < 0 || mapPointerX >= map[0].length) {
-                        mapView[i][j] = ' ';
-                    } else if (map[mapPointerY][mapPointerX] > 2) {
+                    if (mapPointerX < 0) {
+                        mapPointerX += map[0].length;
+                    } if (mapPointerX >= map[0].length) {
+                        mapPointerX -= map[0].length;
+                    }
+
+                    if (map[mapPointerY][mapPointerX] > 2) {
                         mapView[i][j] = 'X';
                     } else if (map[mapPointerY][mapPointerX] == 1) {
                         if (pillStillActive(mapPointerX, mapPointerY)) {
@@ -763,17 +771,19 @@ public class Game extends Application {
                         inputs[i++] = -1;
                         break;
                     default:
-                        inputs[i++] = 0.1f;
+                        inputs[i++] = 0f;
                         break;
                 }
             }
         }
 
         int lowX = pacmanIndexX - (viewWidth / 2);
-        int highX = lowX + viewWidth;
+        int highX = lowX + viewWidth - 1;
 
         int lowY = pacmanIndexY - (viewHeight / 2);
-        int highY = lowY + viewHeight;
+        int highY = lowY + viewHeight - 1;
+
+        int mapWidth = map[0].length;
 
         for (Ghost ghost : ghosts) {
             int ghostIndexX = (int) ghost.positionX / 20;
@@ -781,7 +791,28 @@ public class Game extends Application {
 
             if (lowY <= ghostIndexY && ghostIndexY <= highY) {
                 if (lowX <= ghostIndexX && ghostIndexX <= highX) {
-                    mapView[ghostIndexY - lowY][ghostIndexX - lowX] = 'G';
+                    if (ghost.isSpooked()) {
+                        mapView[ghostIndexY - lowY][ghostIndexX - lowX] = 'E';
+                    } else {
+                        mapView[ghostIndexY - lowY][ghostIndexX - lowX] = 'G';
+                    }
+                } else if (lowX < 0) {
+                    if (mapWidth + lowX <= ghostIndexX) {
+                        if (ghost.isSpooked()) {
+                            mapView[ghostIndexY - lowY][ghostIndexX - lowX - mapWidth] = 'E';
+                        } else {
+                            mapView[ghostIndexY - lowY][ghostIndexX - lowX - mapWidth] = 'G';
+                        }
+                    }
+                } else if (highX >= mapWidth) {
+                    int highXadjusted = highX - (mapWidth + 1);
+                    if (ghostIndexX <= highXadjusted) {
+                        if (ghost.isSpooked()) {
+                            mapView[ghostIndexY - lowY][viewWidth - (highXadjusted - ghostIndexX) - 1] = 'E';
+                        } else {
+                            mapView[ghostIndexY - lowY][viewWidth - (highXadjusted - ghostIndexX) - 1] = 'G';
+                        }
+                    }
                 }
             }
         }
@@ -791,6 +822,9 @@ public class Game extends Application {
                 switch (character) {
                     case 'O':
                         inputs[i++] = 1;
+                        break;
+                    case 'E':
+                        inputs[i++] = 2;
                         break;
                     case 'G':
                         inputs[i++] = -1;
@@ -802,9 +836,9 @@ public class Game extends Application {
             }
         }
 
-//        mapView[viewHeight / 2][viewWidth / 2] = 'P';
+        mapView[viewHeight / 2][viewWidth / 2] = 'P';
 
-        //viewMap(mapView);
+//        viewMap(mapView);
     }
 
     private void viewMap(char[][] array) {
@@ -1102,7 +1136,7 @@ public class Game extends Application {
             if (!simulation || debug) {
                 Platform.runLater(this::updateScreen);
                 try {
-                    Thread.sleep(12);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

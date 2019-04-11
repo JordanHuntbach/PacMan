@@ -93,9 +93,7 @@ class Genome {
     }
 
     void addConnectionMutation(Counter innovation) {
-        int tries = 0;
-        boolean success = false;
-        while (!success && tries < 100) {
+        while (true) {
             List<NodeGene> nodesList = new ArrayList<>(nodes.values());
 
             NodeGene node1 = nodesList.get(random.nextInt(nodesList.size()));
@@ -154,7 +152,6 @@ class Genome {
             }
 
             if (connectionImpossible) {
-                tries++;
                 continue;
             }
 
@@ -169,9 +166,7 @@ class Genome {
                 }
             }
 
-            if (connectionExists) {
-                tries++;
-            } else {
+            if (!connectionExists) {
                 int innovationNumber = -1;
 
                 for (ConnectionGene connectionGene : innovation.getConnectionGenes().values()) {
@@ -191,7 +186,7 @@ class Genome {
                 float weight = random.nextFloat() * 2f - 1f;
                 ConnectionGene newConnection = new ConnectionGene(node1.getId(), node2.getId(), weight, true, innovationNumber);
                 addConnectionGene(newConnection, innovation);
-                success = true;
+                return;
             }
         }
     }
@@ -205,7 +200,7 @@ class Genome {
 
             if (decider < PROBABILITY_OF_MUTATION) {
                 if (random.nextFloat() < PROBABILITY_PERTURBING) {
-                    connection.setWeight(connection.getWeight() + (random.nextFloat() - 0.5f));
+                    connection.setWeight(connection.getWeight() * (random.nextFloat() * 4f - 2f));
                 } else {
                     connection.setWeight(random.nextFloat() * 4f - 2f);
                 }
@@ -364,10 +359,9 @@ class Genome {
 
         float averageWeightDifference = weightDifference / matchingGenes;
 
-//        int genome1Genes = genome1.getNodes().size() + genome1.getConnections().size();
-//        int genome2Genes = genome2.getNodes().size() + genome2.getConnections().size();
-//        int n = Math.max(genome1Genes, genome2Genes);
-        int n = 1;
+        int genome1Genes = genome1.getNodes().size() + genome1.getConnections().size();
+        int genome2Genes = genome2.getNodes().size() + genome2.getConnections().size();
+        int n = Math.max(genome1Genes, genome2Genes);
 
         return (c1 * excessGenes / n) + (c2 * disjointGenes / n) + (c3 * averageWeightDifference);
     }
