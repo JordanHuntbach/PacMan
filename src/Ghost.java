@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Ghost extends Sprite {
+class Ghost extends Sprite {
 
     enum ghostName {
         BLINKY,
@@ -129,6 +129,8 @@ public class Ghost extends Sprite {
 
         exitingDoor = false;
         enteringDoor = false;
+
+        SPEED = 2;
 
         this.setImage(filepath + "Up.png");
 

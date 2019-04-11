@@ -420,6 +420,20 @@ public class Game extends Application {
         ConnectionGene rightConnection = new ConnectionGene(rightID, 3, 1, true, connectionInnovation.getInnovation());
         genome.addConnectionGene(rightConnection, connectionInnovation);
 
+        upID = 4 + (viewWidth * viewHeight) + (viewHeight / 2 - 1) * viewWidth + viewWidth / 2;
+        leftID = 4 + (viewWidth * viewHeight) + (viewHeight / 2) * viewWidth + viewWidth / 2 - 1;
+        rightID = leftID + 2;
+        downID = upID + 2 * viewWidth;
+
+        upConnection = new ConnectionGene(upID, 0, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(upConnection, connectionInnovation);
+        downConnection = new ConnectionGene(downID, 1, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(downConnection, connectionInnovation);
+        leftConnection = new ConnectionGene(leftID, 2, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(leftConnection, connectionInnovation);
+        rightConnection = new ConnectionGene(rightID, 3, 1, true, connectionInnovation.getInnovation());
+        genome.addConnectionGene(rightConnection, connectionInnovation);
+
         return genome;
     }
 
@@ -468,7 +482,7 @@ public class Game extends Application {
             // Eat any pills.
             eatPills();
 
-            if (eatenCoolDown >= 500) {
+            if (eatenCoolDown >= 1000) {
                 return score;
             }
 
