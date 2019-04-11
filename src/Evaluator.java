@@ -150,7 +150,7 @@ abstract class Evaluator {
         speciesList.removeIf(species -> species.getMembers().isEmpty());
         System.out.println("There are currently " + speciesList.size() + " species.");
 
-        if (speciesList.size() >= populationSize * 0.5) {
+        if (speciesList.size() >= populationSize * 0.15) {
             System.out.println("Too many species. Increasing d.");
             d += 1;
         }

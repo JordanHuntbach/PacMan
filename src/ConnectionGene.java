@@ -1,4 +1,4 @@
-public class ConnectionGene {
+class ConnectionGene {
 
     private int inNode;
     private int outNode;

@@ -80,11 +80,15 @@ public class Sprite
     }
 
     Rectangle2D eatBoundary() {
-        return new Rectangle2D(positionX + 10, positionY + 10, width - 20, height - 20);
+        return new Rectangle2D(positionX + 7, positionY + 7, width - 14, height - 14);
     }
 
-    boolean canEat(Sprite s) {
-        return s.getBoundary().intersects(this.eatBoundary());
+    Rectangle2D pillBoundary() {
+        return new Rectangle2D(positionX + 2, positionY + 2, width - 4, height - 4);
+    }
+
+    boolean canEat(Sprite pill) {
+        return this.eatBoundary().intersects(pill.pillBoundary());
     }
 
     public boolean intersects(Sprite s) {
