@@ -9,7 +9,4 @@ Notes:
     Managed to get a high score of 2810 after 100 generations.
 
 
-Directions can move in
-Distance to nearest wall
-Are there dots in that path
-Are there ghosts in that path
+Try making the inputs / outputs relative directions (forward/left/right/backward) rather than absolute (up/down/left/right)

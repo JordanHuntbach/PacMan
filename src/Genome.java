@@ -215,6 +215,9 @@ class Genome {
 
     void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
         List<ConnectionGene> connectionsList = new ArrayList<>(connections.values());
+        if (connectionsList.size() == 0) {
+            return;
+        }
         int index = random.nextInt(connectionsList.size());
         ConnectionGene connection = connectionsList.get(index);
         connection.setExpressed(false);
