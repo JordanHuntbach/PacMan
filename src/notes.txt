@@ -7,6 +7,3 @@ Things to experiment with:
 Notes:
     After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Try 5 next.
     Managed to get a high score of 2810 after 100 generations.
-
-
-Try making the inputs / outputs relative directions (forward/left/right/backward) rather than absolute (up/down/left/right)

@@ -397,23 +397,10 @@ public class Game extends Application {
 
         Genome genome = new Genome();
 
-        NodeGene canTurnUp = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(canTurnUp, nodeInnovation);
-        NodeGene canTurnDown = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(canTurnDown, nodeInnovation);
-        NodeGene canTurnLeft = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(canTurnLeft, nodeInnovation);
-        NodeGene canTurnRight = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(canTurnRight, nodeInnovation);
-
-        NodeGene upDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(upDots, nodeInnovation);
-        NodeGene downDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(downDots, nodeInnovation);
-        NodeGene leftDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(leftDots, nodeInnovation);
-        NodeGene rightDots = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
-        genome.addNodeGene(rightDots, nodeInnovation);
+        for (int i = 0; i < 12; i++) {
+            NodeGene nodeGene = new NodeGene(NodeGene.TYPE.INPUT, nodeInnovation.getInnovation());
+            genome.addNodeGene(nodeGene, nodeInnovation);
+        }
 
         NodeGene up = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
         NodeGene down = new NodeGene(NodeGene.TYPE.OUTPUT, nodeInnovation.getInnovation());
@@ -424,8 +411,8 @@ public class Game extends Application {
         genome.addNodeGene(left, nodeInnovation);
         genome.addNodeGene(right, nodeInnovation);
 
-        for (int i = 0; i < 8; i++) {
-            ConnectionGene connectionGene = new ConnectionGene(i, 8 + i % 4, 1, true, connectionInnovation.getInnovation());
+        for (int i = 0; i < 12; i++) {
+            ConnectionGene connectionGene = new ConnectionGene(i, 12 + i % 4, 1, true, connectionInnovation.getInnovation());
             genome.addConnectionGene(connectionGene, connectionInnovation);
         }
 
@@ -463,11 +450,7 @@ public class Game extends Application {
 
             if (useGhosts) {
                 // Move the ghosts.
-                try {
-                    updateGhostsWrapper();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                updateGhostsWrapper();
             }
 
             // Eat any pills.

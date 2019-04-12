@@ -10,9 +10,9 @@ abstract class Evaluator {
     private List<Species> speciesList;
     private List<Genome> nextGenerationGenomes;
 
-    private float c1 = 1.5f;
-    private float c2 = 1.5f;
-    private float c3 = 0.5f;
+    private float c1 = 2.0f;
+    private float c2 = 2.0f;
+    private float c3 = 1.0f;
     private float d = 5.0f;
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.15f;
