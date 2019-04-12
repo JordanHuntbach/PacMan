@@ -71,18 +71,13 @@ abstract class Evaluator {
     void initialMutate() {
         System.out.println("Mutating genomes.");
         for (Genome genome : genomes) {
-            int rand = random.nextInt(5);
-            for (int i = 0; i < rand; i++) {
-                if (random.nextFloat() < ADD_NODE_RATE) {
-                    genome.addNodeMutation(nodeInnovation, connectionInnovation);
-                }
-                if (random.nextFloat() < ADD_CONNECTION_RATE) {
-                    genome.addConnectionMutation(connectionInnovation);
-                }
+            if (random.nextFloat() < ADD_NODE_RATE) {
+                genome.addNodeMutation(nodeInnovation, connectionInnovation);
             }
-            if (random.nextFloat() < MUTATION_RATE) {
-                genome.mutation();
+            if (random.nextFloat() < ADD_CONNECTION_RATE) {
+                genome.addConnectionMutation(connectionInnovation);
             }
+            genome.mutation();
         }
     }
 

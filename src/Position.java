@@ -30,11 +30,23 @@ public class Position {
         return positionY;
     }
 
+    void setPositionX(double x) {
+        positionX = x;
+    }
+
+    void setPositionY(double y) {
+        positionY = y;
+    }
+
+    void move(double x, double y) {
+        positionX += x;
+        positionY += y;
+    }
+
     public String toString() {
         return "[" + positionX + "," + positionY + "]";
     }
 
-    // Overriding equals() to compare two Complex objects
     @Override
     public boolean equals(Object o) {
 
@@ -46,11 +58,14 @@ public class Position {
             return false;
         }
 
-        // typecast o to Complex so that we can compare data members
         Position p = (Position) o;
 
-        // Compare the data members and return accordingly
         return Double.compare(positionX, p.positionX) == 0 && Double.compare(positionY, p.positionY) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (positionX * 1000 + positionY);
     }
 
     // Some code

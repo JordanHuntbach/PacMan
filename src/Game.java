@@ -159,7 +159,7 @@ public class Game extends Application {
     // Neural network stuff.
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
-    private float [] inputs = new float[8];
+    private float [] inputs = new float[12];
 
     // Training stuff.
     private int populationSize = 100;
@@ -437,7 +437,6 @@ public class Game extends Application {
         // Set up the game.
         gameSetup();
 
-
         // Get the GUI thread to run the refreshCanvas() method.
         Platform.runLater(this::refreshCanvas);
 
@@ -451,16 +450,10 @@ public class Game extends Application {
         // Create a neural network based on the genome parameter.
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
-        int frameCounter = 0;
         eatenCoolDown = 0;
 
         // Game loop - play until all points collected (or ghost hit).
         while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
-
-            frameCounter += 1;
-            if (frameCounter % 50 == 0) {
-                score += 1;
-            }
 
             // Evaulate the NN to get the next direction.
             getNextDirectionFromNN(neuralNetwork);
@@ -470,13 +463,17 @@ public class Game extends Application {
 
             if (useGhosts) {
                 // Move the ghosts.
-                updateGhostsWrapper();
+                try {
+                    updateGhostsWrapper();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             // Eat any pills.
             eatPills();
 
-            if (eatenCoolDown >= 500) {
+            if (eatenCoolDown >= 1000) {
                 return score;
             }
 
@@ -528,13 +525,13 @@ public class Game extends Application {
             int[] orientation; // [FORWARDS, BACKWARDS, LEFT, RIGHT] where UP=0 DOWN=1 LEFT=2 RIGHT=3
 
             switch (currentDirection) {
-                case "Up":
+                case "UP":
                     orientation = new int[] {0, 1, 2, 3};
                     break;
-                case "Down":
+                case "DOWN":
                     orientation = new int[] {1, 0, 3, 2};
                     break;
-                case "Left":
+                case "LEFT":
                     orientation = new int[] {2, 3, 1, 0};
                     break;
                 default:
@@ -728,13 +725,13 @@ public class Game extends Application {
         int[] orientation; // [UP, DOWN, LEFT, RIGHT] where FORWARDS=0 BACKWARDS=1 LEFT=2 RIGHT=3
 
         switch (currentDirection) {
-            case "Up":
+            case "UP":
                 orientation = new int[] {0, 1, 2, 3};
                 break;
-            case "Down":
+            case "DOWN":
                 orientation = new int[] {1, 0, 3, 2};
                 break;
-            case "Left":
+            case "LEFT":
                 orientation = new int[] {3, 2, 0, 1};
                 break;
             default:
@@ -757,7 +754,7 @@ public class Game extends Application {
         int access = 0;
         for (int[] vector : new int[][] {new int[] {0, -1}, new int[] {0, 1}, new int[] {-1, 0}, new int[] {1, 0}}) {
             int pointer = 4 + orientation[access++];
-            if (inputs[pointer - 4] == 0) {
+            if (inputs[pointer - 4] == -1) {
                 inputs[pointer] = 0;
             } else {
                 int checkX = pacmanIndexX;
@@ -781,6 +778,83 @@ public class Game extends Application {
                     }
                 }
             }
+        }
+
+        // Distance to ghost in each direction
+        access = 0;
+        int[][] vectors = new int[][]{new int[]{0, -1}, new int[]{0, 1}, new int[]{-1, 0}, new int[]{1, 0}};
+        if (useGhosts) {
+            for (int[] vector : vectors) {
+                int pointer = 8 + orientation[access++];
+                if (inputs[pointer - 8] == -1) {                // If we can't move in that direction,
+                    inputs[pointer] = 0;                        // it's just a zero.
+                } else {                                        // If we can move in that direction...
+                    Position check = new Position(pacman.positionX, pacman.positionY);
+                    int distance = 0;
+                    boolean done = false;
+                    while (!done) {
+                        check.move(vector[0], vector[1]);
+
+                        if (check.getPositionX() <= -15) {
+                            check.setPositionX(567);
+                        } else if (check.getPositionX() >= 570) {
+                            check.setPositionX(-13);
+                        }
+
+                        distance += 1;                          // Keep moving along
+
+                        for (Ghost ghost : ghosts) {            // If we hit a ghost, bingo
+                            if (ghost.getPosition().equals(check)) {
+                                inputs[pointer] = (float) (ghost.isSpooked() ? 30.0/distance : -30.0/distance);
+                                done = true;
+                                break;
+                            }
+                        }
+
+                        if (!done) {                            // Check if we're at a junction
+                            if (Position.isJunction(check.getPositionX(), check.getPositionY())) {
+                                int junctionType = Position.junctions.get(check);
+                                if (junctionType >= 5) {        // If we're at a crossroads, we're done.
+                                    inputs[pointer] = 0;
+                                    break;
+                                } else {                        // Otherwise, automatically change direction
+                                    boolean[] options = Position.directionOptions[junctionType].clone();
+                                    int backwards;
+                                    if (vector[0] == 0) {
+                                        if (vector[1] == 1) {
+                                            backwards = 0;
+                                        } else {
+                                            backwards = 1;
+                                        }
+                                    } else {
+                                        if (vector[1] == 1) {
+                                            backwards = 2;
+                                        } else {
+                                            backwards = 3;
+                                        }
+                                    }
+                                    options[backwards] = false;
+
+                                    int newVector = 0;
+                                    for (int i = 0; i < 4; i++) {
+                                        if (options[i]) {
+                                            newVector = i;
+                                            break;
+                                        }
+                                    }
+
+                                    vector = vectors[newVector];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            inputs[8] = 0;
+            inputs[9] = 0;
+            inputs[10] = 0;
+            inputs[11] = 0;
         }
 
     }
