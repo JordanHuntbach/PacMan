@@ -10,10 +10,10 @@ abstract class Evaluator {
     private List<Species> speciesList;
     private List<Genome> nextGenerationGenomes;
 
-    private float c1 = 0.8f;
-    private float c2 = 0.8f;
-    private float c3 = 0.2f;
-    private float d = 25.0f;
+    private float c1 = 1.5f;
+    private float c2 = 1.5f;
+    private float c3 = 0.5f;
+    private float d = 5.0f;
     private float MUTATION_RATE = 0.8f;
     private float ADD_CONNECTION_RATE = 0.15f;
     private float ADD_NODE_RATE = 0.1f;
@@ -71,15 +71,17 @@ abstract class Evaluator {
     void initialMutate() {
         System.out.println("Mutating genomes.");
         for (Genome genome : genomes) {
-            genome.addConnectionMutation(connectionInnovation);
-            if (random.nextFloat() < ADD_CONNECTION_RATE) {
-                genome.addNodeMutation(nodeInnovation, connectionInnovation);
+            int rand = random.nextInt(5);
+            for (int i = 0; i < rand; i++) {
+                if (random.nextFloat() < ADD_NODE_RATE) {
+                    genome.addNodeMutation(nodeInnovation, connectionInnovation);
+                }
+                if (random.nextFloat() < ADD_CONNECTION_RATE) {
+                    genome.addConnectionMutation(connectionInnovation);
+                }
             }
-            if (random.nextFloat() < ADD_NODE_RATE) {
-                genome.addNodeMutation(nodeInnovation, connectionInnovation);
-            }
-            if (random.nextFloat() < ADD_CONNECTION_RATE) {
-                genome.addNodeMutation(nodeInnovation, connectionInnovation);
+            if (random.nextFloat() < MUTATION_RATE) {
+                genome.mutation();
             }
         }
     }

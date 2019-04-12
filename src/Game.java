@@ -424,6 +424,11 @@ public class Game extends Application {
         genome.addNodeGene(left, nodeInnovation);
         genome.addNodeGene(right, nodeInnovation);
 
+        for (int i = 0; i < 8; i++) {
+            ConnectionGene connectionGene = new ConnectionGene(i, 8 + i % 4, 1, true, connectionInnovation.getInnovation());
+            genome.addConnectionGene(connectionGene, connectionInnovation);
+        }
+
         return genome;
     }
 
@@ -519,6 +524,25 @@ public class Game extends Application {
                     direction = i;
                 }
             }
+
+            int[] orientation; // [FORWARDS, BACKWARDS, LEFT, RIGHT] where UP=0 DOWN=1 LEFT=2 RIGHT=3
+
+            switch (currentDirection) {
+                case "Up":
+                    orientation = new int[] {0, 1, 2, 3};
+                    break;
+                case "Down":
+                    orientation = new int[] {1, 0, 3, 2};
+                    break;
+                case "Left":
+                    orientation = new int[] {2, 3, 1, 0};
+                    break;
+                default:
+                    orientation = new int[] {3, 2, 0, 1};
+                    break;
+            }
+
+            direction = orientation[direction];
 
             // Set the nextDirection.
             switch (direction) {
@@ -701,13 +725,28 @@ public class Game extends Application {
     // Fills the input array with the relevant values.
     private void getInputs() {
         // Pointer to current position in the input array.
-        int access = 0;
+        int[] orientation; // [UP, DOWN, LEFT, RIGHT] where FORWARDS=0 BACKWARDS=1 LEFT=2 RIGHT=3
+
+        switch (currentDirection) {
+            case "Up":
+                orientation = new int[] {0, 1, 2, 3};
+                break;
+            case "Down":
+                orientation = new int[] {1, 0, 3, 2};
+                break;
+            case "Left":
+                orientation = new int[] {3, 2, 0, 1};
+                break;
+            default:
+                orientation = new int[] {2, 3, 1, 0};
+                break;
+        }
 
         // Valid moves
-        inputs[access++] = canMove("UP") ? 1 : 0;
-        inputs[access++] = canMove("DOWN") ? 1 : 0;
-        inputs[access++] = canMove("LEFT") ? 1 : 0;
-        inputs[access++] = canMove("RIGHT") ? 1 : 0;
+        inputs[orientation[0]] = canMove("UP") ? 1 : -1;
+        inputs[orientation[1]] = canMove("DOWN") ? 1 : -1;
+        inputs[orientation[2]] = canMove("LEFT") ? 1 : -1;
+        inputs[orientation[3]] = canMove("RIGHT") ? 1 : -1;
 
         char[][] mapView = getMapView();
 
@@ -715,9 +754,11 @@ public class Game extends Application {
         int pacmanIndexY = (int) pacman.positionY / 20;
 
         // Is there a dot in each direction
+        int access = 0;
         for (int[] vector : new int[][] {new int[] {0, -1}, new int[] {0, 1}, new int[] {-1, 0}, new int[] {1, 0}}) {
-            if (inputs[access - 4] == 0) {
-                inputs[access++] = 0;
+            int pointer = 4 + orientation[access++];
+            if (inputs[pointer - 4] == 0) {
+                inputs[pointer] = 0;
             } else {
                 int checkX = pacmanIndexX;
                 int checkY = pacmanIndexY;
@@ -732,10 +773,10 @@ public class Game extends Application {
                     }
 
                     if (mapView[checkY][checkX] == '.') {
-                        inputs[access++] = 1;
+                        inputs[pointer] = 1;
                         break;
                     } else if (mapView[checkY][checkX] == 'X') {
-                        inputs[access++] = 0;
+                        inputs[pointer] = 0;
                         break;
                     }
                 }
