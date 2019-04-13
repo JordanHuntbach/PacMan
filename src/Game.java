@@ -393,6 +393,9 @@ public class Game extends Application {
             Left, Right, Up, Down. Move in the direction with the greatest value.
           */
 
+        connectionInnovation = new Counter();
+        nodeInnovation = new Counter();
+
         Genome genome = new Genome();
 
         for (int i = 0; i < 12; i++) {
@@ -1121,8 +1124,8 @@ public class Game extends Application {
 
             // If all pills eaten, move onto next level.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
-                Platform.runLater(this::nextLevel);
-                break;
+                nextLevel();
+                continue;
             }
 
             // If we aren't in a MCTS simulation / play-out, update the screen.
@@ -1181,16 +1184,6 @@ public class Game extends Application {
             // modeTimes = new int[] {5, 25, 30, 50, 55, 1092, 1093};
             modeTimes = new int[] {275, 1375, 1650, 2750, 3025, 60060, 60065}; // Multiply by 55 to get approximate seconds
         }
-
-        // Start the game in a non-GUI thread, to prevent blocking.
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() {
-                gameLoop();
-                return null;
-            }
-        };
-        new Thread(task).start();
     }
 
     // Moves Pac-Man
