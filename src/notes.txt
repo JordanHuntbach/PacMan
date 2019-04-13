@@ -3,7 +3,3 @@ Things to experiment with:
     Adding a positive reward for exploration / survival.
     Change the stagnation protocol to entire species altogether if they're not improving.
     Incremental learning.
-
-Notes:
-    After about 30 generations, each member is in its own species. Changed dt to 10, but then there was just 1 species. Try 5 next.
-    Managed to get a high score of 2810 after 100 generations.
