@@ -359,13 +359,14 @@ public class Game extends Application {
             @Override
             protected Void call() {
 
-                try {
-                    // Evaluate each generation
-                    for (int i = 0; i < generations; i++) {
+
+                // Evaluate each generation
+                for (int i = 0; i < generations; i++) {
+                    try {
                         evaluator.evaluate();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
                 System.out.println("Training finished, saving best genome to file.");
@@ -388,13 +389,12 @@ public class Game extends Application {
     // Create a minimal genome to initialise the NEAT algorithm.
     private Genome newGenome() {
         /* Inputs are:
-            Directions can move in
-            Distance to nearest wall
-            Are there dots in that path
-            Are there ghosts in that path
+            4 x Directions can move in
+            4 x Are there dots in that direction
+            4 x Closest ghosts in that direction
 
            Outputs are:
-            Left, Right, Up, Down. Move in the direction with the greatest value.
+            Forward, Backwards, Left turn, Right turn. Move in the direction with the greatest value.
           */
 
         connectionInnovation = new Counter();
@@ -806,7 +806,7 @@ public class Game extends Application {
 
                         for (Ghost ghost : ghosts) {            // If we hit a ghost, bingo
                             if (ghost.getPosition().equals(check)) {
-                                inputs[pointer] = (float) (ghost.isSpooked() ? 30.0/distance : -30.0/distance);
+                                inputs[pointer] = (float) (ghost.isSpooked() ? 40.0/distance : -40.0/distance);
                                 done = true;
                                 break;
                             }
@@ -815,9 +815,39 @@ public class Game extends Application {
                         if (!done) {                            // Check if we're at a junction
                             if (Position.isJunction(check.getPositionX(), check.getPositionY())) {
                                 int junctionType = Position.junctions.get(check);
-                                if (junctionType >= 5) {        // If we're at a crossroads, we're done.
-                                    inputs[pointer] = 0;
-                                    break;
+                                if (junctionType >= 5) {        // If we're at a crossroads, we can't keep manually searching, so use some A* search.
+                                    int minDistance = Integer.MAX_VALUE;
+                                    boolean scared = false;
+                                    AStarSearch search = new AStarSearch();
+                                    for (Ghost ghost : ghosts) {
+                                        if (ghost.isActive()) {
+                                            Position ghostJunction = Position.getNearestPosition(ghost.positionX, ghost.positionY);
+                                            List<Position> path = search.findPath(ghostJunction, check);
+                                            int length;
+                                            if (path.size() == 0) {
+                                                length = (int) check.distanceTo(ghost.getPosition());
+                                            } else {
+                                                length = pathLength(path);
+                                                if (onPath(ghostJunction, path.get(0), ghost.getPosition())) {
+                                                    length -= (int) ghostJunction.distanceTo(ghost.getPosition());
+                                                } else {
+                                                    length += (int) ghostJunction.distanceTo(ghost.getPosition());
+                                                }
+                                            }
+                                            if (length < minDistance) {
+                                                minDistance = length;
+                                                scared = ghost.isSpooked();
+                                            }
+                                        }
+                                    }
+                                    if (minDistance == Integer.MAX_VALUE) {
+                                        inputs[pointer] = 0;
+                                        break;
+                                    } else {
+                                        distance += minDistance;
+                                        inputs[pointer] = (float) (scared ? 40.0/distance : -40.0/distance);
+                                        break;
+                                    }
                                 } else {                        // Otherwise, automatically change direction
                                     boolean[] options = Position.directionOptions[junctionType].clone();
                                     int backwards;
@@ -859,6 +889,31 @@ public class Game extends Application {
         }
 
     }
+
+    private boolean onPath(Position start, Position end, Position check) {
+        double pathX = end.getPositionX() - start.getPositionX();
+        double pathY = end.getPositionY() - start.getPositionY();
+
+        double checkX = check.getPositionX() - start.getPositionX();
+        double checkY = check.getPositionY() - start.getPositionY();
+
+        return Math.signum(checkX) == Math.signum(pathX) && Math.signum(checkY) == Math.signum(pathY);
+    }
+
+    private int pathLength(List<Position> path) {
+        int distance = 0;
+        Position previous = path.get(0);
+        for (Position next : path) {
+            distance += previous.distanceTo(next);
+            previous = next;
+        }
+        return distance;
+    }
+
+//    private int additionalLength(List<Position> path, Position position) {
+//        Position pos1 = path.get()
+//        int x = path
+//    }
 
     private char[][] getMapView(){
         int viewHeight = map.length;

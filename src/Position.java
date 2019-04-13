@@ -449,14 +449,16 @@ public class Position {
         Position best = null;
         double minDistance = 1000;
         for (Position position : initialisePositions()) {
-            double posX = position.getPositionX();
-            double posY = position.getPositionY();
-            double distance = Math.abs(posX - x) + Math.abs(posY - y);
-            if (distance == 0) {
-                return position;
-            } else if (distance < minDistance) {
-                best = position;
-                minDistance = distance;
+            double dX = Math.abs(position.getPositionX() - x);
+            double dY = Math.abs(position.getPositionY() - y);
+            if (dX == 0 || dY == 0) {
+                double distance = dX + dY;
+                if (distance == 0) {
+                    return position;
+                } else if (distance < minDistance) {
+                    best = position;
+                    minDistance = distance;
+                }
             }
         }
         return best;

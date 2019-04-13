@@ -108,13 +108,11 @@ class MCTS {
     }
 
     String nextDirection() {
-        System.out.println("Get next direction.");
-        System.out.println(directions);
         if (directions.size() == 0) {
             return null;
         } else {
             System.out.println(nodesSelected);
-            nodesSelected.removeFirst();            // THIS LINE IS THE CRASHER
+            nodesSelected.removeFirst();
             return directions.removeFirst();
         }
     }
