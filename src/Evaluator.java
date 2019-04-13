@@ -52,7 +52,7 @@ abstract class Evaluator {
     void saveBestGenome() {
         try {
             FileWriter fileWriter = new FileWriter("bestGenome.gen");
-            fileWriter.write("SCORE ACHEIVED: " + highestScore + "\n");
+            fileWriter.write("SCORE ACHIEVED: " + highestScore + "\n");
             for (ConnectionGene connectionGene : fittestGenome.getConnections().values()) {
                 String geneAsString = connectionGene.getInnovation() + "|"
                         + connectionGene.getInNode() + "|"

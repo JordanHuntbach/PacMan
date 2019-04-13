@@ -359,9 +359,13 @@ public class Game extends Application {
             @Override
             protected Void call() {
 
-                // Evaluate each generation
-                for (int i = 0; i < generations; i++) {
-                    evaluator.evaluate();
+                try {
+                    // Evaluate each generation
+                    for (int i = 0; i < generations; i++) {
+                        evaluator.evaluate();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
                 System.out.println("Training finished, saving best genome to file.");
