@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+
 import static java.lang.Thread.sleep;
 
 public class Game extends Application {
@@ -124,17 +124,15 @@ public class Game extends Application {
 
     // Timers for when the ghosts get released.
     private int pinkyCounter;
-    private int pinkyLimit = 0;
+    private int pinkyLimit;
     private int inkyCounter;
-    private int inkyLimit = 30;
+    private int inkyLimit;
     private int clydeCounter;
-    private int clydeLimit = 60;
+    private int clydeLimit;
     private int eatenCoolDown;
     private int scaredCounter;
 
-    // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
-    // private int[] modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
-    private int[] modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
+    private int[] modeTimes;
     private int currentMode;
     private int modeCounter;
     private int level = 1;
@@ -439,8 +437,8 @@ public class Game extends Application {
 
         eatenCoolDown = 0;
 
-        // Game loop - play until all points collected (or ghost hit).
-        while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
+        // Game loop
+        while (true) {
 
             // Evaulate the NN to get the next direction.
             getNextDirectionFromNN(neuralNetwork);
@@ -455,6 +453,11 @@ public class Game extends Application {
 
             // Eat any pills.
             eatPills();
+
+            if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
+                nextLevel();
+                continue;
+            }
 
             if (eatenCoolDown >= 1000) {
                 return score;
@@ -477,14 +480,15 @@ public class Game extends Application {
                     if (ghost.isSpooked()) {
                         ghostEaten(ghost);  // Pac-Man eats ghost.
                     } else if (!ghost.isEyes()) {
-                        return score;       // Ghost eats Pac-Man.
+                        if (lives == 0) {
+                            return score;
+                        } else {
+                            lostLife();
+                        }
                     }
                 }
             }
         }
-
-        // Return the score to the evaluator.
-        return score;
     }
 
     // This method passes the inputs to a given NN, and sets nextDirection if appropriate.
@@ -683,13 +687,20 @@ public class Game extends Application {
 
             // Initialise counters.
             pinkyCounter = 0;
+            pinkyLimit = 0;
             inkyCounter = 0;
+            inkyLimit = 30;
             clydeCounter = 0;
+            clydeLimit = 60;
             ghostsEaten = 0;
             modeCounter = 0;
             currentMode = 0;
             eatenCoolDown = 0;
         }
+
+        // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
+        // modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
+        modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
 
         // Initialise debug markers.
         previousMarker = new Sprite();
@@ -875,20 +886,20 @@ public class Game extends Application {
         return mapView;
     }
 
-    private void viewMap(char[][] array) {
-        int pacmanIndexX = (int) pacman.positionX / 20;
-        int pacmanIndexY = (int) pacman.positionY / 20;
-
-        array[pacmanIndexY][pacmanIndexX] = 'P';
-
-        for (char[] row : array) {
-            for (char element : row) {
-                System.out.print(element + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
+//    private void viewMap(char[][] array) {
+//        int pacmanIndexX = (int) pacman.positionX / 20;
+//        int pacmanIndexY = (int) pacman.positionY / 20;
+//
+//        array[pacmanIndexY][pacmanIndexX] = 'P';
+//
+//        for (char[] row : array) {
+//            for (char element : row) {
+//                System.out.print(element + " ");
+//            }
+//            System.out.println();
+//        }
+//        System.out.println();
+//    }
 
     private boolean pillStillActive(int mapPointerY, int mapPointerX) {
         Position pillPosition = new Position(22 + mapPointerX * 20, 22 + mapPointerY * 20);
@@ -908,24 +919,6 @@ public class Game extends Application {
             }
         }
         return false;
-    }
-
-    private void handleDotInputs(boolean useDotType, List<Sprite> dotTypeList, int access, float[] inputs, boolean energizer) {
-        if (useDotType) {
-            // Distance + direction to closest pill.
-            Sprite pill = closestPill(dotTypeList, energizer);
-            Position position;
-            if (energizer) {
-                position = new Position(pill.positionX - 6, pill.positionY - 6);
-            } else {
-                position = new Position(pill.positionX - 14, pill.positionY - 14);
-            }
-            inputDistanceAndDirection(position, inputs, access);
-        } else {
-            for (int i = 0; i < 3; i++) {
-                inputs[access++] = 0;
-            }
-        }
     }
 
     // Returns whether Pac-Man can move in a specified direction.
@@ -978,65 +971,6 @@ public class Game extends Application {
             default:
                 return false;
         }
-    }
-
-    // Calculates the distance and direction from Pac-Man to a Sprite, and puts the results in the inputs array.
-    private void inputDistanceAndDirection(Position position, float[] inputs, int access) {
-        if (position == null) {
-            inputs[access++] = 0;
-            inputs[access++] = 0;
-            inputs[access] = 0;
-        } else {
-            float distance = distanceToPosition(position);
-            inputs[access++] = distance > 500 ? -1 : 1 - distance / 250;
-            if (distance != 0) {
-                double direction = Math.toRadians(directionToPosition(position));
-                inputs[access++] = (float) Math.cos(direction);
-                inputs[access] = (float) Math.sin(direction);
-            } else {
-                inputs[access++] = 0;
-                inputs[access] = 0;
-            }
-        }
-    }
-
-    // Returns the closest Sprite to Pac-Man from a given list.
-    private Sprite closestPill(List<Sprite> pills, boolean energizer) {
-        float minDistance = Float.MAX_VALUE;
-        Sprite closest = null;
-        for (Sprite pill : pills) {
-            float difference = energizer ? 6 : 14;
-            float dx = (float) Math.abs(pacman.getPositionX() - pill.getPositionX() - difference);
-            float dy = (float) Math.abs(pacman.getPositionY() - pill.getPositionY() - difference);
-            float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-            if (distance < minDistance) {
-                minDistance = distance;
-                closest = pill;
-            }
-        }
-        return closest;
-    }
-
-    // Calculates the distance to a given Position from Pac-Man.
-    private float distanceToPosition(Position position) {
-        float dx = (float) Math.abs(pacman.getPositionX() - position.getPositionX());
-        float dy = (float) Math.abs(pacman.getPositionY() - position.getPositionY());
-        float distance = (float) Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-        if (Float.isNaN(distance)) {
-            System.out.println("Distance NaN");
-        }
-        return distance;
-    }
-
-    // Calculates the direction to a given Position from Pac-Man.
-    private double directionToPosition(Position position) {
-        double x = (position.getPositionX() - pacman.getPositionX()); // +ve if position to the right
-        double y = (pacman.getPositionY() - position.getPositionY()); // +ve if position above
-        double angle = Math.toDegrees(Math.atan(y / x)) - 90;
-        if (Double.isNaN(angle)) {
-            System.out.println("Direction NaN");
-        }
-        return angle;
     }
 
     // Returns the genome stored in bestGenome.gen.
@@ -1684,10 +1618,12 @@ public class Game extends Application {
         inkyLimit = 10;
         clydeLimit = 15;
 
-        try {
-            sleep(1500);
-        } catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
+        if (!training) {
+            try {
+                sleep(1500);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
