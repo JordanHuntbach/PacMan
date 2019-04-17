@@ -30,6 +30,7 @@ abstract class Evaluator {
 
     private float highestScore = 0;
     private Genome fittestGenome = null;
+    private Genome previousGenerationFittest = null;
     private int stagnation = 0;
 
     private int generationNumber = 0;
@@ -50,10 +51,13 @@ abstract class Evaluator {
     abstract float evaluateGenome(Genome genome, int generationNumber, int memberNumber, float highestScore);
 
     void saveBestGenome() {
+        if (previousGenerationFittest == null) {
+            previousGenerationFittest = fittestGenome;
+        }
         try {
             FileWriter fileWriter = new FileWriter("bestGenome.gen");
-            fileWriter.write("SCORE ACHEIVED: " + highestScore + "\n");
-            for (ConnectionGene connectionGene : fittestGenome.getConnections().values()) {
+            fileWriter.write("SCORE ACHIEVED: " + highestScore + "\n");
+            for (ConnectionGene connectionGene : previousGenerationFittest.getConnections().values()) {
                 String geneAsString = connectionGene.getInnovation() + "|"
                         + connectionGene.getInNode() + "|"
                         + connectionGene.getOutNode() + "|"
@@ -70,15 +74,14 @@ abstract class Evaluator {
 
     void initialMutate() {
         System.out.println("Mutating genomes.");
-        int counter = 0;
         for (Genome genome : genomes) {
-            if (counter < 10) {
-                counter++;
+            if (random.nextFloat() < ADD_NODE_RATE) {
                 genome.addNodeMutation(nodeInnovation, connectionInnovation);
             }
-            for (int i = 0; i < 100; i++) {
-                genome.mutation();
+            if (random.nextFloat() < ADD_CONNECTION_RATE) {
+                genome.addConnectionMutation(connectionInnovation);
             }
+            genome.mutation();
         }
     }
 
@@ -88,6 +91,7 @@ abstract class Evaluator {
         speciesList.forEach(Species::reset);
         speciesMap.clear();
         nextGenerationGenomes.clear();
+        highestScore = 0;
 
         System.out.println();
         System.out.println("Allocating each genome a species.");
@@ -122,7 +126,6 @@ abstract class Evaluator {
             genome.setFitness(adjustedScore);
 
             if (score > highestScore) {
-                System.out.println("New highest score found! (" + score + ")");
                 highestScore = score;
                 fittestGenome = genome;
                 stagnation = 0;
@@ -150,8 +153,11 @@ abstract class Evaluator {
         speciesList.removeIf(species -> species.getMembers().isEmpty());
         System.out.println("There are currently " + speciesList.size() + " species.");
 
-        if (speciesList.size() >= populationSize * 0.15) {
-            System.out.println("Too many species. Increasing d.");
+        if (speciesList.size() == 1) {
+            System.out.println("Only one species - decreasing d.");
+            d -= 0.5;
+        } else if (speciesList.size() >= populationSize * 0.15) {
+            System.out.println("Too many species - increasing d.");
             d += 1;
         }
 
@@ -198,6 +204,7 @@ abstract class Evaluator {
         genomes = nextGenerationGenomes;
         nextGenerationGenomes = new ArrayList<>();
         System.out.println("Generation " + generationNumber + " processed. Current high score: " + highestScore + "\n");
+        previousGenerationFittest = fittestGenome;
     }
 
     private Species getFitnessBiasedSpecies() {

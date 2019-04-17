@@ -25,7 +25,10 @@ import javafx.scene.text.FontWeight;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 import static java.lang.Thread.sleep;
 
@@ -122,17 +125,15 @@ public class Game extends Application {
 
     // Timers for when the ghosts get released.
     private int pinkyCounter;
-    private int pinkyLimit = 0;
+    private int pinkyLimit;
     private int inkyCounter;
-    private int inkyLimit = 30;
+    private int inkyLimit;
     private int clydeCounter;
-    private int clydeLimit = 60;
+    private int clydeLimit;
     private int eatenCoolDown;
     private int scaredCounter;
 
-    // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
-    // private int[] modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
-    private int[] modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
+    private int[] modeTimes;
     private int currentMode;
     private int modeCounter;
     private int level = 1;
@@ -160,7 +161,7 @@ public class Game extends Application {
     private float [] inputs = new float[32];
 
     // Training stuff.
-    private int populationSize = 150;
+    private int populationSize = 100;
     private int generations = 250;
 
     // Game settings.
@@ -361,7 +362,11 @@ public class Game extends Application {
 
                 // Evaluate each generation
                 for (int i = 0; i < generations; i++) {
-                    evaluator.evaluate();
+                    try {
+                        evaluator.evaluate();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 System.out.println("Training finished, saving best genome to file.");
@@ -508,7 +513,6 @@ public class Game extends Application {
         // Set up the game.
         gameSetup();
 
-
         // Get the GUI thread to run the refreshCanvas() method.
         Platform.runLater(this::refreshCanvas);
 
@@ -522,16 +526,10 @@ public class Game extends Application {
         // Create a neural network based on the genome parameter.
         NeuralNetwork neuralNetwork = new NeuralNetwork(genome);
 
-        int frameCounter = 0;
         eatenCoolDown = 0;
 
-        // Game loop - play until all points collected (or ghost hit).
-        while (!pillsList.isEmpty() || !powerPillsList.isEmpty()) {
-
-            frameCounter += 1;
-            if (frameCounter % 50 == 0) {
-                score += 1;
-            }
+        // Game loop
+        while (true) {
 
             // Evaulate the NN to get the next direction.
             getNextDirectionFromNN(neuralNetwork);
@@ -546,6 +544,11 @@ public class Game extends Application {
 
             // Eat any pills.
             eatPills();
+
+            if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
+                nextLevel();
+                continue;
+            }
 
             if (eatenCoolDown >= 1000) {
                 return score;
@@ -568,14 +571,15 @@ public class Game extends Application {
                     if (ghost.isSpooked()) {
                         ghostEaten(ghost);  // Pac-Man eats ghost.
                     } else if (!ghost.isEyes()) {
-                        return score;       // Ghost eats Pac-Man.
+                        if (lives == 0) {
+                            return score;
+                        } else {
+                            lostLife();
+                        }
                     }
                 }
             }
         }
-
-        // Return the score to the evaluator.
-        return score;
     }
 
     // This method passes the inputs to a given NN, and sets nextDirection if appropriate.
@@ -755,13 +759,20 @@ public class Game extends Application {
 
             // Initialise counters.
             pinkyCounter = 0;
+            pinkyLimit = 0;
             inkyCounter = 0;
+            inkyLimit = 30;
             clydeCounter = 0;
+            clydeLimit = 60;
             ghostsEaten = 0;
             modeCounter = 0;
             currentMode = 0;
             eatenCoolDown = 0;
         }
+
+        // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
+        // modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
+        modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
 
         // Initialise debug markers.
         previousMarker = new Sprite();
@@ -1040,6 +1051,8 @@ public class Game extends Application {
         nodeInnovation = new Counter();
         connectionInnovation = new Counter();
 
+        simulation = false;
+
         Genome genome = loadGenome();
         if (genome != null) {
             neuralNetwork = new NeuralNetwork(genome);
@@ -1049,7 +1062,11 @@ public class Game extends Application {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
-                gameLoop();
+                try {
+                    gameLoop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 return null;
             }
         };
@@ -1085,15 +1102,22 @@ public class Game extends Application {
 
             // If all pills eaten, move onto next level.
             if (pillsList.isEmpty() && powerPillsList.isEmpty()) {
-                Platform.runLater(this::nextLevel);
-                break;
+                nextLevel();
+                continue;
             }
 
             // If we aren't in a MCTS simulation / play-out, update the screen.
-            if (!simulation || debug) {
+            if (!simulation) {
                 Platform.runLater(this::updateScreen);
                 try {
                     Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else if (debug) {
+                Platform.runLater(this::updateScreen);
+                try {
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -1145,16 +1169,6 @@ public class Game extends Application {
             // modeTimes = new int[] {5, 25, 30, 50, 55, 1092, 1093};
             modeTimes = new int[] {275, 1375, 1650, 2750, 3025, 60060, 60065}; // Multiply by 55 to get approximate seconds
         }
-
-        // Start the game in a non-GUI thread, to prevent blocking.
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() {
-                gameLoop();
-                return null;
-            }
-        };
-        new Thread(task).start();
     }
 
     // Moves Pac-Man
@@ -1582,10 +1596,12 @@ public class Game extends Application {
         inkyLimit = 10;
         clydeLimit = 15;
 
-        try {
-            sleep(1500);
-        } catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
+        if (!training) {
+            try {
+                sleep(1500);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

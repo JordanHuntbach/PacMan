@@ -69,7 +69,7 @@ class NeuralNetwork {
             // Feed inputsReady to the input neurons.
             Neuron inputNeuron = neurons.get(input.get(i));
             inputNeuron.feedInput(-1, input_parameter[i]);
-            inputNeuron.calculate();
+            inputNeuron.noActivation();
 
             for (int j = 0; j < inputNeuron.getOutputIDs().size(); j++) {
                 // Feed the result to the input neurons' connections, multiplying by respective weights.
@@ -152,6 +152,14 @@ class NeuralNetwork {
 
         List<Float> getOutputWeights() {
             return outputWeights;
+        }
+
+        void noActivation() {
+            float sum = 0f;
+            for (float f : inputs) {
+                sum += f;
+            }
+            output = sum;
         }
 
         void calculate() {

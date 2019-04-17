@@ -30,11 +30,23 @@ public class Position {
         return positionY;
     }
 
+    void setPositionX(double x) {
+        positionX = x;
+    }
+
+    void setPositionY(double y) {
+        positionY = y;
+    }
+
+    void move(double x, double y) {
+        positionX += x;
+        positionY += y;
+    }
+
     public String toString() {
         return "[" + positionX + "," + positionY + "]";
     }
 
-    // Overriding equals() to compare two Complex objects
     @Override
     public boolean equals(Object o) {
 
@@ -46,11 +58,14 @@ public class Position {
             return false;
         }
 
-        // typecast o to Complex so that we can compare data members
         Position p = (Position) o;
 
-        // Compare the data members and return accordingly
         return Double.compare(positionX, p.positionX) == 0 && Double.compare(positionY, p.positionY) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (positionX * 1000 + positionY);
     }
 
     // Some code
@@ -434,14 +449,16 @@ public class Position {
         Position best = null;
         double minDistance = 1000;
         for (Position position : initialisePositions()) {
-            double posX = position.getPositionX();
-            double posY = position.getPositionY();
-            double distance = Math.abs(posX - x) + Math.abs(posY - y);
-            if (distance == 0) {
-                return position;
-            } else if (distance < minDistance) {
-                best = position;
-                minDistance = distance;
+            double dX = Math.abs(position.getPositionX() - x);
+            double dY = Math.abs(position.getPositionY() - y);
+            if (dX == 0 || dY == 0) {
+                double distance = dX + dY;
+                if (distance == 0) {
+                    return position;
+                } else if (distance < minDistance) {
+                    best = position;
+                    minDistance = distance;
+                }
             }
         }
         return best;

@@ -440,4 +440,7 @@ class Ghost extends Sprite {
         this.eyes = true;
     }
 
+    public String toString() {
+        return this.name + " " + super.toString();
+    }
 }

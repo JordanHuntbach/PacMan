@@ -48,28 +48,27 @@ public class AStarSearch {
 
         while (!openList.isEmpty()) {
             Position node = (Position) openList.removeFirst();
-            if (node == goalNode) {
-                return constructPath(goalNode);
+            if (node.equals(goalNode)) {
+                return constructPath(node);
             }
 
             List<Position> neighbors = node.getNeighbours();
-            for (Object neighbour : neighbors) {
-                Position neighbourNode = (Position) neighbour;
-                boolean isOpen = openList.contains(neighbourNode);
-                boolean isClosed = closedList.contains(neighbourNode);
-                float costFromStart = node.costFromStart + node.getCost(neighbourNode);
+            for (Position neighbour : neighbors) {
+                boolean isOpen = openList.contains(neighbour);
+                boolean isClosed = closedList.contains(neighbour);
+                float costFromStart = node.costFromStart + node.getCost(neighbour);
 
                 // Check if the neighbor node has not been traversed, or if a shorter path to the
                 // neighbor node has been found.
-                if ((!isOpen && !isClosed) || costFromStart < neighbourNode.costFromStart) {
-                    neighbourNode.pathParent = node;
-                    neighbourNode.costFromStart = costFromStart;
-                    neighbourNode.estimatedCostToGoal = neighbourNode.getEstimatedCost(goalNode);
+                if ((!isOpen && !isClosed) || costFromStart < neighbour.costFromStart) {
+                    neighbour.pathParent = node;
+                    neighbour.costFromStart = costFromStart;
+                    neighbour.estimatedCostToGoal = neighbour.getEstimatedCost(goalNode);
                     if (isClosed) {
-                        closedList.remove(neighbourNode);
+                        closedList.remove(neighbour);
                     }
                     if (!isOpen) {
-                        openList.add(neighbourNode);
+                        openList.add(neighbour);
                     }
                 }
             }
@@ -87,7 +86,4 @@ public class AStarSearch {
         }
         return path;
     }
-
-    private List<Position> positions = Position.initialisePositions();
-
 }
