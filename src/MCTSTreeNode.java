@@ -30,6 +30,16 @@ class MCTSTreeNode {
         }
     }
 
+    void expandChildrenNoBacktrack() {
+        List<Position> neighbours = position.getNeighbours();
+        for (Position neighbour : neighbours) {
+            if (!this.parentNode.getPosition().equals(neighbour)) {
+                MCTSTreeNode child = new MCTSTreeNode(this, neighbour);
+                children.add(child);
+            }
+        }
+    }
+
     List<MCTSTreeNode> getChildren() {
         return children;
     }
@@ -38,7 +48,7 @@ class MCTSTreeNode {
         return children.isEmpty();
     }
 
-    void updateStats(int score) {
+    void updateStats(double score) {
         double temp = averageScore * visitCount;
         visitCount += 1;
         temp += score;

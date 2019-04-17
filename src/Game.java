@@ -1138,6 +1138,8 @@ public class Game extends Application {
         nodeInnovation = new Counter();
         connectionInnovation = new Counter();
 
+        simulation = false;
+
         Genome genome = loadGenome();
         if (genome != null) {
             neuralNetwork = new NeuralNetwork(genome);
@@ -1147,7 +1149,11 @@ public class Game extends Application {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
-                gameLoop();
+                try {
+                    gameLoop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 return null;
             }
         };
@@ -1188,10 +1194,17 @@ public class Game extends Application {
             }
 
             // If we aren't in a MCTS simulation / play-out, update the screen.
-            if (!simulation || debug) {
+            if (!simulation) {
                 Platform.runLater(this::updateScreen);
                 try {
                     Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else if (debug) {
+                Platform.runLater(this::updateScreen);
+                try {
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -81,7 +81,9 @@ class MCTS {
     }
 
     void expansion() {
-        leafNode.expandChildren();
+        if (leafNode.getChildren().size() == 0) {
+            leafNode.expandChildrenNoBacktrack();
+        }
 
         MCTSTreeNode child = getRandomChild(leafNode);
 
@@ -95,7 +97,7 @@ class MCTS {
         return nodes.get(rand.nextInt(nodes.size()));
     }
 
-    void backPropagation(int score) {
+    void backPropagation(float score) {
         notInPlayout = true;
 
         if (directions.size() != 0) {
@@ -111,7 +113,6 @@ class MCTS {
         if (directions.size() == 0) {
             return null;
         } else {
-            System.out.println(nodesSelected);
             nodesSelected.removeFirst();
             return directions.removeFirst();
         }
@@ -119,10 +120,10 @@ class MCTS {
 
     String evaluateTree() {
         MCTSTreeNode best = null;
-        double bestScore = 0;
+        double bestScore = -Double.MAX_VALUE;
         for (MCTSTreeNode child : root.getChildren()) {
-            if (child.getMaxScore() > bestScore) {
-                bestScore = child.getMaxScore();
+            if (child.getAverageScore() > bestScore) {
+                bestScore = child.getAverageScore();
                 best = child;
             }
         }
