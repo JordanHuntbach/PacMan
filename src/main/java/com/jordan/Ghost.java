@@ -1,3 +1,5 @@
+package com.jordan;
+
 import javafx.geometry.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;

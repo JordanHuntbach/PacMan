@@ -1,3 +1,5 @@
+package com.jordan;
+
 class NodeGene {
 
     enum TYPE {

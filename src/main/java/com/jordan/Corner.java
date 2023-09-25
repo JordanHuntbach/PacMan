@@ -1,3 +1,5 @@
+package com.jordan;
+
 import javafx.geometry.Rectangle2D;
 
 public class Corner extends Sprite {
