@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-class Genome {
+public class Genome {
 
     private float fitness;
 
-    private static List<Integer> tempList1 = new ArrayList<>();
-    private static List<Integer> tempList2 = new ArrayList<>();
+    private static final List<Integer> tempList1 = new ArrayList<>();
+    private static final List<Integer> tempList2 = new ArrayList<>();
 
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
-    private Map<Integer, ConnectionGene> connections;
-    private Map<Integer, NodeGene> nodes;
+    private final Map<Integer, ConnectionGene> connections;
+    private final Map<Integer, NodeGene> nodes;
 
     Genome() {
         connections = new HashMap<>();
@@ -223,7 +223,7 @@ class Genome {
 
     void addNodeMutation(Counter nodeInnovation, Counter connectionInnovation) {
         List<ConnectionGene> connectionsList = new ArrayList<>(connections.values());
-        if (connectionsList.size() == 0) {
+        if (connectionsList.isEmpty()) {
             return;
         }
         int index = random.nextInt(connectionsList.size());
@@ -244,7 +244,7 @@ class Genome {
             int out = connectionGene.getOutNode();
             if (in == inNodeID && !excluded.contains(out)) {
                 if (outIDs.contains(out)) {
-                    outIDs.remove(outIDs.indexOf(out));
+                    outIDs.remove((Integer) out);
                     excluded.add(out);
                 } else {
                     outIDs.add(out);

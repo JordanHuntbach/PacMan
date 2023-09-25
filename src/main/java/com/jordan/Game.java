@@ -6,6 +6,10 @@ import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
@@ -14,15 +18,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.scene.Group;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -38,20 +38,20 @@ public class Game extends Application {
 
     // This data structure represents the map.
     /**
-    Codes:
-    1 = Pill
-    2 = PowerPill
-    3 = Horizontal Wall
-    4 = Vertical Wall
-    5 = Corner (Top <-> Right)
-    6 = Corner (Bottom <-> Right)
-    7 = Corner (Top <-> Left)
-    8 = Corner (Bottom <-> Left)
-    9 = Door
-    10= Inaccessible
-    */
-    private int X = 10;
-    private int[][] map = new int[][]{
+     * Codes:
+     * 1 = Pill
+     * 2 = PowerPill
+     * 3 = Horizontal Wall
+     * 4 = Vertical Wall
+     * 5 = Corner (Top <-> Right)
+     * 6 = Corner (Bottom <-> Right)
+     * 7 = Corner (Top <-> Left)
+     * 8 = Corner (Bottom <-> Left)
+     * 9 = Door
+     * 10= Inaccessible
+     */
+    private final int X = 10;
+    private final int[][] map = new int[][]{
             {6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 8},
             {4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
             {4, 1, 6, 3, 3, 8, 1, 6, 3, 3, 3, 8, 1, 4, 4, 1, 6, 3, 3, 3, 8, 1, 6, 3, 3, 8, 1, 4},
@@ -110,10 +110,10 @@ public class Game extends Application {
     private Ghost clyde;
 
     // Player speed.
-    private int SPEED = 2;
+    private final int SPEED = 2;
 
     // Sprites that mark Pac-Man's position and the ghosts' targets.
-    private boolean debug = false;
+    private final boolean debug = false;
     private Sprite previousMarker;
     private Sprite nextMarker;
     private Sprite blinkyMarker;
@@ -160,11 +160,11 @@ public class Game extends Application {
     // Neural network stuff.
     private Evaluator evaluator;
     private NeuralNetwork neuralNetwork;
-    private float [] inputs = new float[32];
+    private final float[] inputs = new float[32];
 
     // Training stuff.
-    private int populationSize = 100;
-    private int generations = 250;
+    private final int populationSize = 100;
+    private final int generations = 250;
 
     // Game settings.
     private boolean ai = false;
@@ -186,7 +186,7 @@ public class Game extends Application {
         Font.loadFont(getClass().getResourceAsStream("Styling/PacFont.ttf"), 16);
         mainStage = stage;
         mainStage.setTitle("Pac-Man");
-        optionsScene = new Scene(optionsSetup(), 592,720, Color.BLACK);
+        optionsScene = new Scene(optionsSetup(), 592, 720, Color.BLACK);
         optionsScene.getStylesheets().add("Styling/style.css");
         menu();
     }
@@ -211,13 +211,22 @@ public class Game extends Application {
         RadioButton humanPlayer = new RadioButton("Human Player");
         humanPlayer.setToggleGroup(group);
         humanPlayer.setSelected(true);
-        humanPlayer.setOnAction(event -> {ai = false; training = false;});
+        humanPlayer.setOnAction(event -> {
+            ai = false;
+            training = false;
+        });
         RadioButton aiPlayer = new RadioButton("AI Player");
         aiPlayer.setToggleGroup(group);
-        aiPlayer.setOnAction(event -> {ai = true; training = false;});
+        aiPlayer.setOnAction(event -> {
+            ai = true;
+            training = false;
+        });
         RadioButton trainNeuralNetwork = new RadioButton("Train Neural Network");
         trainNeuralNetwork.setToggleGroup(group);
-        trainNeuralNetwork.setOnAction(event -> {ai = true; training = true;});
+        trainNeuralNetwork.setOnAction(event -> {
+            ai = true;
+            training = true;
+        });
 
         HBox hBox = new HBox();
         hBox.getChildren().addAll(humanPlayer, aiPlayer, trainNeuralNetwork);
@@ -255,7 +264,7 @@ public class Game extends Application {
 
         mainMenu.getChildren().add(text);
 
-        scene = new Scene(mainMenu, 592,720, Color.BLACK);
+        scene = new Scene(mainMenu, 592, 720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
         mainStage.setScene(scene);
         mainStage.show();
@@ -334,7 +343,7 @@ public class Game extends Application {
     }
 
     // Used to create button effects.
-    private void setButtonText(Button button, String text){
+    private void setButtonText(Button button, String text) {
         button.textProperty().bind(
                 Bindings.when(button.hoverProperty())
                         .then(text.toLowerCase())
@@ -585,7 +594,7 @@ public class Game extends Application {
     }
 
     // This method passes the inputs to a given NN, and sets nextDirection if appropriate.
-    private void getNextDirectionFromNN(NeuralNetwork neuralNetwork){
+    private void getNextDirectionFromNN(NeuralNetwork neuralNetwork) {
         // Calculate inputs.
         getInputs();
         // Calculate outputs.
@@ -639,11 +648,11 @@ public class Game extends Application {
     // Called between games to refresh the GUI.
     private void refreshCanvas() {
         root.getChildren().remove(canvas);
-        canvas = new Canvas(592,720);
+        canvas = new Canvas(592, 720);
         root.getChildren().add(canvas);
 
         gc = canvas.getGraphicsContext2D();
-        gc.setFont(Font.font("Helvetica", FontWeight.BOLD,24));
+        gc.setFont(Font.font("Helvetica", FontWeight.BOLD, 24));
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(1);
 
@@ -674,7 +683,7 @@ public class Game extends Application {
             rowCounter += 1;
             for (int code : row) {
                 colCounter = (colCounter + 1) % COLUMNS;
-                if(code == 1 && useDots) {
+                if (code == 1 && useDots) {
                     Sprite pill = new Sprite();
                     pill.setImage("Sprites/Pickups/pill.png");
                     double px = 22 + 20 * colCounter;
@@ -774,7 +783,7 @@ public class Game extends Application {
 
         // Start in scatter mode, then switch after 7, 20,  7, 20,  5, 20, 5 seconds
         // modeTimes = new int[] {7, 27, 34, 54, 59, 79, 84};
-        modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
+        modeTimes = new int[]{385, 1485, 1870, 2970, 3245, 4345, 4620}; // Multiply by 55 to get approximate seconds
 
         // Initialise debug markers.
         previousMarker = new Sprite();
@@ -959,8 +968,7 @@ public class Game extends Application {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
-            while ((line = reader.readLine()) != null)
-            {
+            while ((line = reader.readLine()) != null) {
                 lines.add(line);
             }
             reader.close();
@@ -978,11 +986,11 @@ public class Game extends Application {
         // For every connection gene listed in the file, add it to a list.
         for (String line : lines) {
             String[] things = line.split("\\|");
-            int innovation = Integer.valueOf(things[0]);
-            int inNode = Integer.valueOf(things[1]);
-            int outNode = Integer.valueOf(things[2]);
-            float weight = Float.valueOf(things[3]);
-            boolean expressed = Boolean.valueOf(things[4]);
+            int innovation = Integer.parseInt(things[0]);
+            int inNode = Integer.parseInt(things[1]);
+            int outNode = Integer.parseInt(things[2]);
+            float weight = Float.parseFloat(things[3]);
+            boolean expressed = Boolean.parseBoolean(things[4]);
 
             ConnectionGene connectionGene = new ConnectionGene(inNode, outNode, weight, expressed, innovation);
             connectionGenes.add(connectionGene);
@@ -1166,10 +1174,10 @@ public class Game extends Application {
                 clydeLimit = 0;
             }
             // modeTimes = new int[] {7, 27, 34, 54, 59, 1092, 1093};
-            modeTimes = new int[] {385, 1485, 1870, 2970, 3245, 60060, 60065}; // Multiply by 55 to get approximate seconds
+            modeTimes = new int[]{385, 1485, 1870, 2970, 3245, 60060, 60065}; // Multiply by 55 to get approximate seconds
         } else {
             // modeTimes = new int[] {5, 25, 30, 50, 55, 1092, 1093};
-            modeTimes = new int[] {275, 1375, 1650, 2750, 3025, 60060, 60065}; // Multiply by 55 to get approximate seconds
+            modeTimes = new int[]{275, 1375, 1650, 2750, 3025, 60060, 60065}; // Multiply by 55 to get approximate seconds
         }
     }
 
@@ -1240,7 +1248,7 @@ public class Game extends Application {
                 pacman.setImage("Sprites/Pac-Man/pacman.png");
             } else {
                 mouthOpen = true;
-                pacman.setImage("Sprites/Pac-Man/pacman" + currentDirection.substring(0, 1) + ".png");
+                pacman.setImage("Sprites/Pac-Man/pacman" + currentDirection.charAt(0) + ".png");
             }
         }
 
@@ -1314,12 +1322,12 @@ public class Game extends Application {
 
         String pointsText = "Score: " + (score);
         gc.setFill(Color.WHITE);
-        gc.fillText(pointsText, 20, 670 );
-        gc.strokeText(pointsText, 20, 670 );
+        gc.fillText(pointsText, 20, 670);
+        gc.strokeText(pointsText, 20, 670);
 
         String livesText = "Lives: " + (lives);
-        gc.fillText(livesText, 20, 700 );
-        gc.strokeText(livesText, 20, 700 );
+        gc.fillText(livesText, 20, 700);
+        gc.strokeText(livesText, 20, 700);
 
         if (debug) {
             previousMarker.render(gc);
@@ -1351,7 +1359,7 @@ public class Game extends Application {
 
         VBox.setMargin(exitButton, new Insets(20, 0, 0, 0));
 
-        scene = new Scene(vBox, 592,720, Color.BLACK);
+        scene = new Scene(vBox, 592, 720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
         mainStage.setScene(scene);
     }
@@ -1359,16 +1367,16 @@ public class Game extends Application {
     private void trainingStats(int gen, int member, float highScore) {
         String text = "High Score: " + highScore;
         gc.setFill(Color.WHITE);
-        gc.fillText(text, 200, 700 );
-        gc.strokeText(text, 200, 700 );
+        gc.fillText(text, 200, 700);
+        gc.strokeText(text, 200, 700);
 
         text = "Member: " + member + "/" + populationSize;
-        gc.fillText(text, 200, 670 );
-        gc.strokeText(text, 200, 670 );
+        gc.fillText(text, 200, 670);
+        gc.strokeText(text, 200, 670);
 
         text = "Generation: " + gen;
-        gc.fillText(text, 400, 670 );
-        gc.strokeText(text, 400, 670 );
+        gc.fillText(text, 400, 670);
+        gc.strokeText(text, 400, 670);
     }
 
     private void adjustPosition(Ghost ghost) {
@@ -1383,7 +1391,7 @@ public class Game extends Application {
     }
 
     private void scaredGhosts(boolean scared) {
-        if (scared){
+        if (scared) {
             scaredCounter = 0;
         } else {
             scaredCounter = -1;
@@ -1522,7 +1530,7 @@ public class Game extends Application {
         }
 
         if (pinky.isActive()) {
-            pinky.update(colour, target.getPositionX(),  target.getPositionY());
+            pinky.update(colour, target.getPositionX(), target.getPositionY());
             pinkyMarker.setPosition(target.getPositionX(), target.getPositionY());
         }
 
@@ -1532,7 +1540,7 @@ public class Game extends Application {
             } else {
                 target = new Position(blinkyX + 2 * vectorX, blinkyY + 2 * vectorY);
             }
-            inky.update(colour, target.getPositionX(),  target.getPositionY());
+            inky.update(colour, target.getPositionX(), target.getPositionY());
             inkyMarker.setPosition(target.getPositionX(), target.getPositionY());
         }
 
@@ -1546,7 +1554,7 @@ public class Game extends Application {
                     target = new Position(27, 627);
                 }
             }
-            clyde.update(colour, target.getPositionX(),  target.getPositionY());
+            clyde.update(colour, target.getPositionX(), target.getPositionY());
             clydeMarker.setPosition(target.getPositionX(), target.getPositionY());
         }
 
@@ -1631,7 +1639,7 @@ public class Game extends Application {
 
         VBox.setMargin(newGameButton, new Insets(20, 0, 0, 0));
 
-        scene = new Scene(vBox, 592,720, Color.BLACK);
+        scene = new Scene(vBox, 592, 720, Color.BLACK);
         scene.getStylesheets().add("Styling/style.css");
         mainStage.setScene(scene);
     }
@@ -1643,7 +1651,7 @@ public class Game extends Application {
 
         adjustPosition(ghost);
 
-        score += 200 * Math.pow(2, ghostsEaten);
+        score += (int) (200 * Math.pow(2, ghostsEaten));
         ghostsEaten += 1;
     }
 

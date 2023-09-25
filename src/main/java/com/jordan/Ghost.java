@@ -1,6 +1,7 @@
 package com.jordan;
 
 import javafx.geometry.Rectangle2D;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -22,7 +23,7 @@ class Ghost extends Sprite {
     private boolean scatter = true;
     private Position scatterTarget;
 
-    private AStarSearch search = new AStarSearch();
+    private final AStarSearch search = new AStarSearch();
 
     private boolean spooked = false;
     private boolean active = true;
@@ -31,7 +32,7 @@ class Ghost extends Sprite {
     private boolean exitingDoor = false;
     private boolean enteringDoor = false;
 
-    private String filepath;
+    private final String filepath;
 
     private Position home;
 
@@ -92,7 +93,7 @@ class Ghost extends Sprite {
     private int backwards = 1;
     private String backwardsString = "";
 
-    private static ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
+    private static final ArrayList<String> directions = new ArrayList<>(Arrays.asList("Up", "Down", "Left", "Right"));
 
     void reverse() {
         if (eyes || !active) {
@@ -141,7 +142,7 @@ class Ghost extends Sprite {
         backwardsString = "";
     }
 
-    void setScatter(boolean scatter){
+    void setScatter(boolean scatter) {
         this.scatter = scatter;
     }
 
@@ -234,9 +235,9 @@ class Ghost extends Sprite {
                 boolean[] options = Position.directionOptions[Position.junctions.get(junction)];
 
                 // Prevent ghosts turning up in special positions.
-                for (Position position: Position.getSpecialPositions()) {
+                for (Position position : Position.getSpecialPositions()) {
                     if (position.equals(junction)) {
-                        options = new boolean[] {false, false, true, true};
+                        options = new boolean[]{false, false, true, true};
                         break;
                     }
                 }
@@ -430,7 +431,7 @@ class Ghost extends Sprite {
         return pacman.eatBoundary().intersects(this.catchBoundary());
     }
 
-    boolean isSpooked(){
+    boolean isSpooked() {
         return spooked;
     }
 

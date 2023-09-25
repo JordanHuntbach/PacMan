@@ -12,12 +12,12 @@ class MCTS {
 
     private MCTSTreeNode root;
 
-    private Position position;
+    private final Position position;
 
-    private Random rand = new Random();
+    private final Random rand = new Random();
 
-    private Deque<String> directions = new ArrayDeque<>();
-    private Deque<MCTSTreeNode> nodesSelected = new ArrayDeque<>();
+    private final Deque<String> directions = new ArrayDeque<>();
+    private final Deque<MCTSTreeNode> nodesSelected = new ArrayDeque<>();
 
     private MCTSTreeNode leafNode;
 
@@ -45,7 +45,7 @@ class MCTS {
         while (!selected.isLeaf()) {
             MCTSTreeNode next = null;
             double max = 0;
-            for (MCTSTreeNode child: selected.getChildren()) {
+            for (MCTSTreeNode child : selected.getChildren()) {
                 if (!child.leadsToDeath()) {
                     // Mean reward of child + exploration parameter * sqrt(ln(parent visits)/child visits)
                     double c = 10;
@@ -83,7 +83,7 @@ class MCTS {
     }
 
     void expansion() {
-        if (leafNode.getChildren().size() == 0) {
+        if (leafNode.getChildren().isEmpty()) {
             leafNode.expandChildrenNoBacktrack();
         }
 
@@ -102,7 +102,7 @@ class MCTS {
     void backPropagation(int score) {
         notInPlayout = true;
 
-        if (directions.size() != 0) {
+        if (!directions.isEmpty()) {
             leafNode = nodesSelected.removeFirst();
             leafNode.setLeadsToDeath();
         }
@@ -112,7 +112,7 @@ class MCTS {
     }
 
     String nextDirection() {
-        if (directions.size() == 0) {
+        if (directions.isEmpty()) {
             return null;
         } else {
             nodesSelected.removeFirst();

@@ -2,11 +2,11 @@ package com.jordan;
 
 class ConnectionGene {
 
-    private int inNode;
-    private int outNode;
+    private final int inNode;
+    private final int outNode;
     private float weight;
     private boolean expressed;
-    private int innovation;
+    private final int innovation;
 
     ConnectionGene(int inNode, int outNode, float weight, boolean expressed, int innovation) {
         this.inNode = inNode;

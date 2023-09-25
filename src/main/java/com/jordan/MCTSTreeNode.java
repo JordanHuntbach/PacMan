@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 class MCTSTreeNode {
-    private Position position;
+    private final Position position;
     private double averageScore;
     private double maxScore;
     private int visitCount;
-    private boolean root;
+    private final boolean root;
     private boolean leadsToDeath = false;
 
-    private ArrayList<MCTSTreeNode> children = new ArrayList<>();
+    private final ArrayList<MCTSTreeNode> children = new ArrayList<>();
     private MCTSTreeNode parentNode;
 
     MCTSTreeNode(MCTSTreeNode parent, Position nodePosition) {
@@ -73,15 +73,15 @@ class MCTSTreeNode {
         return parentNode;
     }
 
-    double getAverageScore(){
+    double getAverageScore() {
         return averageScore;
     }
 
-    double getMaxScore(){
+    double getMaxScore() {
         return maxScore;
     }
 
-    double getVisitCount(){
+    double getVisitCount() {
         return visitCount;
     }
 

@@ -5,26 +5,26 @@ import java.io.IOException;
 import java.util.*;
 
 abstract class Evaluator {
-    private int populationSize;
+    private final int populationSize;
 
     private List<Genome> genomes;
-    private Map<Genome, Species> speciesMap;
-    private List<Species> speciesList;
+    private final Map<Genome, Species> speciesMap;
+    private final List<Species> speciesList;
     private List<Genome> nextGenerationGenomes;
 
-    private float c1 = 1.0f;
-    private float c2 = 1.0f;
-    private float c3 = 0.35f;
+    private final float c1 = 1.0f;
+    private final float c2 = 1.0f;
+    private final float c3 = 0.35f;
     private float d = 6.0f;
-    private float MUTATION_RATE = 0.8f;
-    private float ADD_CONNECTION_RATE = 0.15f;
-    private float ADD_NODE_RATE = 0.1f;
-    private float CHILD_IS_PARENT_CLONE = 0.1f;
+    private final float MUTATION_RATE = 0.8f;
+    private final float ADD_CONNECTION_RATE = 0.15f;
+    private final float ADD_NODE_RATE = 0.1f;
+    private final float CHILD_IS_PARENT_CLONE = 0.1f;
 
-    private Counter nodeInnovation;
-    private Counter connectionInnovation;
+    private final Counter nodeInnovation;
+    private final Counter connectionInnovation;
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     float getHighestScore() {
         return highestScore;
@@ -88,8 +88,8 @@ abstract class Evaluator {
     }
 
     void evaluate() {
-        stagnation ++;
-        generationNumber ++;
+        stagnation++;
+        generationNumber++;
         speciesList.forEach(Species::reset);
         speciesMap.clear();
         nextGenerationGenomes.clear();
@@ -157,7 +157,7 @@ abstract class Evaluator {
 
         if (speciesList.size() == 1) {
             System.out.println("Only one species - decreasing d.");
-            d -= 0.5;
+            d -= 0.5F;
         } else if (speciesList.size() >= populationSize * 0.15) {
             System.out.println("Too many species - increasing d.");
             d += 1;
@@ -177,7 +177,7 @@ abstract class Evaluator {
             nextGenerationGenomes.add(bestGenome);
         }
 
-        System.out.println("Breeding " + (populationSize - nextGenerationGenomes.size()) +  " new members.");
+        System.out.println("Breeding " + (populationSize - nextGenerationGenomes.size()) + " new members.");
         while (nextGenerationGenomes.size() < populationSize) {
             Species species = getFitnessBiasedSpecies();
 
@@ -239,7 +239,7 @@ abstract class Evaluator {
 
     public class Species {
         private Genome mascot;
-        private List<Genome> members;
+        private final List<Genome> members;
         private float totalAdjustedFitness = 0f;
 
         Species(Genome mascot) {
@@ -279,7 +279,7 @@ abstract class Evaluator {
         }
     }
 
-    public class FitnessComparator implements Comparator<Genome> {
+    public static class FitnessComparator implements Comparator<Genome> {
 
         @Override
         public int compare(Genome one, Genome two) {

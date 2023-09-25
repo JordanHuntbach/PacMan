@@ -5,13 +5,13 @@ import java.util.Map;
 
 class Counter {
 
-    private Map<Integer, ConnectionGene> connectionGeneMap;
-    private Map<Integer, NodeGene> nodeGeneMap;
+    private final Map<Integer, ConnectionGene> connectionGeneMap;
+    private final Map<Integer, NodeGene> nodeGeneMap;
 
     private int currentInnovation = 0;
 
     int getInnovation() {
-        return currentInnovation ++;
+        return currentInnovation++;
     }
 
     Counter() {
@@ -32,6 +32,7 @@ class Counter {
             nodeGeneMap.put(id, gene);
         }
     }
+
     Map<Integer, ConnectionGene> getConnectionGenes() {
         return connectionGeneMap;
     }

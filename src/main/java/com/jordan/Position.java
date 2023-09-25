@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Position {
+public class Position implements Comparable<Position> {
     private double positionX;
     private double positionY;
 
-    private static List<Position> specialPositions = new ArrayList<>() {{
+    private static final List<Position> specialPositions = new ArrayList<>() {{
         add(new Position(247, 227));
         add(new Position(307, 227));
         add(new Position(247, 467));
@@ -141,21 +141,21 @@ public class Position {
     }};
 
     // Each array specifies if a junction is connected via the up, down, left, and right directions respectively.
-    static boolean[][] directionOptions = new boolean[][] {
+    static boolean[][] directionOptions = new boolean[][]{
             // Special case for the start location.
-            new boolean[] {false, false, true, true}, // 0: START
+            new boolean[]{false, false, true, true}, // 0: START
             // Corners
-            new boolean[] {true, false, true, false}, // 1: UP + LEFT
-            new boolean[] {true, false, false, true}, // 2: UP + RIGHT
-            new boolean[] {false, true, true, false}, // 3: DOWN + LEFT
-            new boolean[] {false, true, false, true}, // 4: DOWN + RIGHT
+            new boolean[]{true, false, true, false}, // 1: UP + LEFT
+            new boolean[]{true, false, false, true}, // 2: UP + RIGHT
+            new boolean[]{false, true, true, false}, // 3: DOWN + LEFT
+            new boolean[]{false, true, false, true}, // 4: DOWN + RIGHT
             // T-Junctions
-            new boolean[] {true, true, true, false}, // 5: UP, DOWN, LEFT
-            new boolean[] {true, true, false, true}, // 6: UP, DOWN, RIGHT
-            new boolean[] {true, false, true, true}, // 7: UP, LEFT, RIGHT
-            new boolean[] {false, true, true, true}, // 8: DOWN, LEFT, RIGHT
+            new boolean[]{true, true, true, false}, // 5: UP, DOWN, LEFT
+            new boolean[]{true, true, false, true}, // 6: UP, DOWN, RIGHT
+            new boolean[]{true, false, true, true}, // 7: UP, LEFT, RIGHT
+            new boolean[]{false, true, true, true}, // 8: DOWN, LEFT, RIGHT
             // Cross-Roads
-            new boolean[] {true, true, true, true}, // 9: CROSS ROADS
+            new boolean[]{true, true, true, true}, // 9: CROSS ROADS
     };
 
 
@@ -164,7 +164,7 @@ public class Position {
     Position pathParent;
     float costFromStart;
     float estimatedCostToGoal;
-    private ArrayList<Position> neighbours = new ArrayList<>();
+    private final ArrayList<Position> neighbours = new ArrayList<>();
 
     private float getSumCost() {
         return costFromStart + estimatedCostToGoal;
@@ -174,24 +174,24 @@ public class Position {
         return Float.compare(this.getSumCost(), other.getSumCost());
     }
 
-    float getCost(Position node){
+    float getCost(Position node) {
         return (float) Math.abs(node.getPositionX() - this.positionX) + (float) Math.abs(node.getPositionY() - this.positionY);
     }
 
     //The estimated cost should never exceed the true cost. The better the estimate, the more efficient the search.
-    float getEstimatedCost(Position node){
+    float getEstimatedCost(Position node) {
         return (float) Math.abs(node.getPositionX() - this.positionX) + (float) Math.abs(node.getPositionY() - this.positionY);
     }
 
-    List<Position> getNeighbours(){
+    List<Position> getNeighbours() {
         return neighbours;
     }
 
-    private void addNeighbour(Position position){
+    private void addNeighbour(Position position) {
         neighbours.add(position);
     }
 
-    private void addNeighbourAndBack(Position position){
+    private void addNeighbourAndBack(Position position) {
         neighbours.add(position);
         position.addNeighbour(this);
     }
@@ -447,7 +447,7 @@ public class Position {
         return positions;
     }
 
-    static Position getNearestPosition(double x, double y){
+    static Position getNearestPosition(double x, double y) {
         Position best = null;
         double minDistance = 1000;
         for (Position position : initialisePositions()) {

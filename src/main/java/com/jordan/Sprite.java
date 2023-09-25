@@ -1,11 +1,10 @@
 package com.jordan;
 
-import javafx.scene.image.Image;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 
-public class Sprite
-{
+public class Sprite {
     private Image image;
     double positionX;
     double positionY;
@@ -98,6 +97,6 @@ public class Sprite
     }
 
     public String toString() {
-        return "Position: [" + (double)Math.round(positionX * 100d) / 100d + "," + (double)Math.round(positionY * 100d) / 100d + "]";
+        return "Position: [" + (double) Math.round(positionX * 100d) / 100d + "," + (double) Math.round(positionY * 100d) / 100d + "]";
     }
 }

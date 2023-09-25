@@ -3,25 +3,25 @@ package com.jordan;
 import java.util.ArrayList;
 
 class State {
-    private Position pacmanPosition;
-    private ArrayList<Sprite> pillsList;
-    private ArrayList<Sprite> powerPillsList;
-    private int score;
-    private Ghost blinky;
-    private Ghost pinky;
-    private Ghost inky;
-    private Ghost clyde;
-    private int ghostsEaten;
-    private int pinkyCounter;
-    private int pinkyLimit;
-    private int inkyCounter;
-    private int inkyLimit;
-    private int clydeCounter;
-    private int clydeLimit;
-    private int eatenCoolDown;
-    private int scaredCounter;
-    private int modeCounter;
-    private int currentMode;
+    private final Position pacmanPosition;
+    private final ArrayList<Sprite> pillsList;
+    private final ArrayList<Sprite> powerPillsList;
+    private final int score;
+    private final Ghost blinky;
+    private final Ghost pinky;
+    private final Ghost inky;
+    private final Ghost clyde;
+    private final int ghostsEaten;
+    private final int pinkyCounter;
+    private final int pinkyLimit;
+    private final int inkyCounter;
+    private final int inkyLimit;
+    private final int clydeCounter;
+    private final int clydeLimit;
+    private final int eatenCoolDown;
+    private final int scaredCounter;
+    private final int modeCounter;
+    private final int currentMode;
 
     State(Game game) {
         Sprite pacman = game.getPacman();

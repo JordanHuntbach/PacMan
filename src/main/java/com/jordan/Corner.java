@@ -3,7 +3,7 @@ package com.jordan;
 import javafx.geometry.Rectangle2D;
 
 public class Corner extends Sprite {
-    private String type;
+    private final String type;
 
     Corner(String cornerType) {
         positionX = 0;
@@ -12,7 +12,7 @@ public class Corner extends Sprite {
     }
 
     private Rectangle2D getBoundary1() {
-        switch(type){
+        switch (type) {
             case "TR":
             case "BR":
                 return new Rectangle2D(positionX, positionY, 2, height);
@@ -26,7 +26,7 @@ public class Corner extends Sprite {
     }
 
     private Rectangle2D getBoundary2() {
-        switch(type){
+        switch (type) {
             case "TR":
             case "TL":
                 return new Rectangle2D(positionX, positionY + height - 2, width, 2);

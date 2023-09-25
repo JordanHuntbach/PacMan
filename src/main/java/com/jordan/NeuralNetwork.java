@@ -1,20 +1,15 @@
 package com.jordan;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class NeuralNetwork {
 
-    private Map<Integer, Neuron> neurons; // All neurons in genome, mapped by ID
+    private final Map<Integer, Neuron> neurons; // All neurons in genome, mapped by ID
 
-    private List<Integer> input;  // IDs of input neurons
-    private List<Integer> output; // IDs of output neurons
+    private final List<Integer> input;  // IDs of input neurons
+    private final List<Integer> output; // IDs of output neurons
 
-    private List<Neuron> unprocessed;
+    private final List<Neuron> unprocessed;
 
     NeuralNetwork(Genome genome) {
         input = new ArrayList<>();
@@ -84,7 +79,7 @@ class NeuralNetwork {
         }
 
         boolean progress = true;
-        while (unprocessed.size() > 0) {
+        while (!unprocessed.isEmpty()) {
             if (!progress) {
                 System.out.println("Can't solve network. Giving up and returning null");
                 return null;
@@ -120,15 +115,15 @@ class NeuralNetwork {
     }
 
     public static class Neuron {
-        private int id;
+        private final int id;
 
         private float output;
-        private ArrayList<Float> inputs;
-        private ArrayList<Integer> inputsRequired;
-        private ArrayList<Integer> inputsReady;
+        private final ArrayList<Float> inputs;
+        private final ArrayList<Integer> inputsRequired;
+        private final ArrayList<Integer> inputsReady;
 
-        private ArrayList<Integer> outputIDs;
-        private ArrayList<Float> outputWeights;
+        private final ArrayList<Integer> outputIDs;
+        private final ArrayList<Float> outputWeights;
 
         Neuron(int id) {
             this.id = id;

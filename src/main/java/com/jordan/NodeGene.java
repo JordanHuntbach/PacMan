@@ -6,11 +6,10 @@ class NodeGene {
         INPUT,
         OUTPUT,
         HIDDEN,
-        ;
     }
 
-    private TYPE type;
-    private int id;
+    private final TYPE type;
+    private final int id;
 
     NodeGene(TYPE type, int id) {
         this.type = type;
